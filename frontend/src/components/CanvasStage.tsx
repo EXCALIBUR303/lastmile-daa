@@ -39,6 +39,15 @@ export function CanvasStage({
     for (const oid of view.dropped) {
       const o = orderOf.get(oid); if (o) st.set(o.drop, view.late.has(oid) ? "violated" : "settled")
     }
+    // Step 7: an order the repair loop dropped never gets picked up or
+    // dropped for real, so it would otherwise sit at "idle" -- visually
+    // indistinguishable from an order that was simply never zoned here.
+    // Reusing "violated" tells the same story ("this one didn't make it")
+    // a beat earlier than a live deadline miss would.
+    for (const oid of view.repaired) {
+      const o = orderOf.get(oid)
+      if (o) { st.set(o.pickup, "violated"); st.set(o.drop, "violated") }
+    }
     for (const [, node] of view.at) st.set(node, "active")
     return st
   }, [view, orderOf])

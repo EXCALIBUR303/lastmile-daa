@@ -40,6 +40,7 @@ export interface VehiclePlan {
   vehicle_id: number; zone: number[]; selected: number[]; route: number[]
   visits: StopVisit[]; profit: number; travel_time: number; travel_cost: number
   mst_lower_bound: number | null
+  dp_bound: number
   peak_load: number; feasible: boolean
 }
 export interface Metrics {
@@ -74,3 +75,7 @@ export interface SolveResponse {
   truncated: boolean; stride: number; stub: boolean
   apsp: ApspMatrixData | null
 }
+
+export type BenchExperiment = "apsp_crossover" | "selector_quality" | "zoning_quality" | "size" | "capacity"
+export interface BenchRow { [key: string]: number | string }
+export interface BenchResponse { experiment: BenchExperiment; rows: BenchRow[]; runtime_ms: number }

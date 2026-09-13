@@ -51,6 +51,9 @@ export function SegButton<T extends string>({
 const TOPOLOGIES: readonly Topology[] = ["radial", "grid", "scale_free"]
 const APSP_MODES: readonly SolveConfig["apsp"][] = ["dijkstra", "floyd", "johnson"]
 const ZONING_MODES: readonly SolveConfig["zoning"][] = ["prim", "kruskal", "none"]
+const SELECTOR_MODES: readonly SolveConfig["selector"][] = ["dp_deadline", "dp_01"]
+const GREEDY_MODES: readonly SolveConfig["selector"][] = ["greedy_density", "greedy_edd"]
+const SEQUENCER_MODES: readonly SolveConfig["sequencer"][] = ["auto", "held_karp", "insertion_2opt"]
 
 export function LeftPanel({
   gen, setGen, cfg, setCfg, disabled,
@@ -87,6 +90,27 @@ export function LeftPanel({
           {cfg.zoning === "prim" && "MST (Prim) over pickups, cut into per-vehicle zones."}
           {cfg.zoning === "kruskal" && "MST (Kruskal) over pickups, cut into per-vehicle zones."}
           {cfg.zoning === "none" && "Baseline: round-robin, ignores geography entirely."}
+        </p>
+
+        <label className="block pt-1 text-[10px] text-muted">Order selection</label>
+        <SegButton id="selector-dp" options={SELECTOR_MODES} value={cfg.selector}
+                   onChange={(s) => setCfg({ selector: s })} />
+        <SegButton id="selector-greedy" options={GREEDY_MODES} value={cfg.selector}
+                   onChange={(s) => setCfg({ selector: s })} />
+        <p className="text-[10px] leading-snug text-muted">
+          {cfg.selector === "dp_deadline" && "DP-3, exact: knapsack with deadlines — see the DP tab."}
+          {cfg.selector === "dp_01" && "Classic 0/1 knapsack, capacity only — deliberately deadline-blind."}
+          {cfg.selector === "greedy_density" && "G1: best profit-per-minute first, EDD-feasibility checked."}
+          {cfg.selector === "greedy_edd" && "G2: earliest-deadline-first, capacity + deadline checked live."}
+        </p>
+
+        <label className="block pt-1 text-[10px] text-muted">Route sequencing</label>
+        <SegButton id="sequencer" options={SEQUENCER_MODES} value={cfg.sequencer}
+                   onChange={(s) => setCfg({ sequencer: s })} />
+        <p className="text-[10px] leading-snug text-muted">
+          {cfg.sequencer === "auto" && "Held-Karp when the zone is small enough, else the heuristic."}
+          {cfg.sequencer === "held_karp" && "Exact PDP-TSP — falls back automatically past the safety cap."}
+          {cfg.sequencer === "insertion_2opt" && "Cheapest-insertion + precedence-preserving 2-opt."}
         </p>
       </section>
 

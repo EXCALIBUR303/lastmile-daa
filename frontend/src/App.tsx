@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react"
 import { ApspMatrix } from "./components/ApspMatrix"
 import { CanvasStage } from "./components/CanvasStage"
 import { LeftPanel, SegButton } from "./components/Controls"
+import { BenchPanel } from "./components/BenchPanel"
+import { DpTable } from "./components/DpTable"
 import { EventLog, MetricsDock } from "./components/MetricsDock"
 import { Transport, usePlaybackClock } from "./components/Transport"
 import { spring } from "./motion/presets"
@@ -11,7 +13,7 @@ import { usePlayback } from "./store/playback"
 import { useSolution } from "./store/solution"
 import { buildCheckpoints, emptyView, foldTrace } from "./trace/reducer"
 
-const RIGHT_TABS = ["trace", "matrix"] as const
+const RIGHT_TABS = ["trace", "matrix", "dp", "bench"] as const
 type RightTab = (typeof RIGHT_TABS)[number]
 
 export default function App() {
@@ -43,9 +45,9 @@ export default function App() {
             <p className="text-[11px] text-muted">DAA PBL · Group 7 · graphs + greedy + DP</p>
           </div>
 
-          {data?.stub && (
-            <span className="rounded-md bg-warn/15 px-2 py-1 text-[11px] text-warn">
-              Step 5 · MST zoning (Prim/Kruskal) live · selection/sequencing still placeholders
+          {data && !data.stub && (
+            <span className="rounded-md bg-good/15 px-2 py-1 text-[11px] text-good">
+              Steps 1–7 live: real graph → MST zoning → DP selection → Held-Karp/2-opt routing → repair
             </span>
           )}
           {error && (
@@ -103,9 +105,14 @@ export default function App() {
                   <SegButton id="right-tab" options={RIGHT_TABS} value={rightTab}
                              onChange={setRightTab} />
                   <div className="mt-2">
-                    {rightTab === "trace"
-                      ? <EventLog view={view} />
-                      : <ApspMatrix apsp={data.apsp} k={view.apspK} />}
+                    {rightTab === "trace" && <EventLog view={view} />}
+                    {rightTab === "matrix" && <ApspMatrix apsp={data.apsp} k={view.apspK} />}
+                    {rightTab === "dp" && (
+                      <DpTable dpRow={view.dpRow} dpCells={view.dpCells}
+                               T={Math.ceil(gen.horizon)} Q={gen.capacity}
+                               totalOrders={gen.n_orders} />
+                    )}
+                    {rightTab === "bench" && <BenchPanel />}
                   </div>
                 </div>
               </>

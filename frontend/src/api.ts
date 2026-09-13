@@ -1,4 +1,4 @@
-import type { GenerateRequest, SolveConfig, SolveResponse } from "./types"
+import type { BenchExperiment, BenchResponse, GenerateRequest, SolveConfig, SolveResponse } from "./types"
 
 // In dev, Vite's proxy (vite.config.ts) forwards relative /api/* to the local
 // backend, so this stays empty. In prod there's no such proxy -- the built
@@ -31,3 +31,6 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 
 export const solve = (generate: GenerateRequest, config: SolveConfig) =>
   post<SolveResponse>("/api/solve", { generate, config })
+
+export const runBench = (experiment: BenchExperiment, params: Record<string, unknown> = {}) =>
+  post<BenchResponse>("/api/bench", { experiment, params })

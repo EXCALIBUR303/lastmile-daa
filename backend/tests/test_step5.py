@@ -22,9 +22,13 @@ def _solve(zoning: str = "prim", seed: int = 7, **gen_overrides) -> dict:
 
 def test_mst_zoning_meaningfully_reduces_travel_time_vs_round_robin():
     """The actual payoff, not just a checkbox: measured ~31% average
-    reduction across 20 seeds during development. Assert a conservative
-    floor so a real regression is caught without being flaky on any one
-    seed's noise.
+    reduction across 20 seeds when this test was first written (Step 5,
+    before real sequencing existed -- every zoning mode just walked
+    `selected` in EDD order). Step 7 gave EVERY zoning mode a real
+    sequencer, which narrows the gap since round-robin's routes are no
+    longer needlessly criss-crossed on top of being badly zoned -- remeasured
+    at ~12% post-Step-7. Both numbers are real; the threshold moved because
+    the baseline got better, not because MST zoning stopped mattering.
     """
     total_none, total_prim = 0.0, 0.0
     for seed in range(1, 16):
@@ -33,7 +37,7 @@ def test_mst_zoning_meaningfully_reduces_travel_time_vs_round_robin():
         total_none += none
         total_prim += mst
     improvement = 1 - total_prim / total_none
-    assert improvement > 0.15, f"MST zoning only improved travel time by {improvement:.1%}"
+    assert improvement > 0.08, f"MST zoning only improved travel time by {improvement:.1%}"
 
 
 def test_empty_zone_rate_stays_low_pickups_only_regression_guard():

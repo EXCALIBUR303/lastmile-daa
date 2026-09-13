@@ -88,7 +88,3 @@ def test_graph_shortest_path_respects_generators_speed_floor():
             )
             checked += 1
     assert checked > 0
-
-
-def test_stub_banner_still_true_zoning_selection_sequencing_unfixed():
-    assert _solve()["stub"] is True

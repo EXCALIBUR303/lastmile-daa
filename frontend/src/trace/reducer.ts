@@ -17,6 +17,7 @@ export interface ViewState {
   pickedUp: Set<number>
   dropped: Set<number>
   late: Set<number>
+  repaired: Set<number>            // step 7: order ids dropped by the repair loop
   log: { stage: string; kind: string; text: string }[]
 }
 
@@ -27,7 +28,7 @@ export const emptyView = (): ViewState => ({
   settled: new Set(), frontier: new Set(), relaxed: new Set(), mstEdges: new Set(),
   dpRow: -1, dpCells: new Map(), apspK: -1, bfNegativeCycle: null,
   vehicle: null, clock: 0, at: new Map(),
-  pickedUp: new Set(), dropped: new Set(), late: new Set(), log: [],
+  pickedUp: new Set(), dropped: new Set(), late: new Set(), repaired: new Set(), log: [],
 })
 
 const clone = (v: ViewState): ViewState => ({
@@ -37,33 +38,46 @@ const clone = (v: ViewState): ViewState => ({
   apspK: v.apspK, bfNegativeCycle: v.bfNegativeCycle,
   vehicle: v.vehicle, clock: v.clock, at: new Map(v.at),
   pickedUp: new Set(v.pickedUp), dropped: new Set(v.dropped),
-  late: new Set(v.late), log: v.log.slice(),
+  late: new Set(v.late), repaired: new Set(v.repaired), log: v.log.slice(),
 })
 
 const ekey = (u: number, v: number) => (u < v ? `${u}-${v}` : `${v}-${u}`)
 const num = (p: Record<string, unknown>, k: string) => (p[k] as number) ?? 0
 
+// Keyed on "stage/kind" combined, not `kind` alone: several stages reuse a
+// kind name with a DIFFERENT meaning (bellman's "done" vs heldkarp's "done";
+// sim's "drop" vs repair's "drop") -- a plain switch(kind) silently picks
+// whichever case is lexically first and never re-checks, so a later stage
+// reusing an earlier kind name would get the WRONG, wrong-stage description
+// with no error. This was caught by exactly that happening once already.
 function describe(s: Step): string {
   const p = s.payload
-  switch (s.kind) {
-    case "vehicle_start":  return `vehicle ${num(p, "vehicle")} starts · zone ${(p.zone as number[])?.length ?? 0} orders`
-    case "pickup":         return `veh ${num(p, "vehicle")} picks up order ${num(p, "order")} @ n${num(p, "node")} · t=${num(p, "clock")} load=${num(p, "load")}`
-    case "drop":           return `veh ${num(p, "vehicle")} drops order ${num(p, "order")} · t=${num(p, "clock")} slack=${num(p, "slack")}`
-    case "deadline_miss":  return `veh ${num(p, "vehicle")} MISSED order ${num(p, "order")} by ${Math.abs(num(p, "slack")).toFixed(1)} min`
-    case "vehicle_end":    return `vehicle ${num(p, "vehicle")} back at depot · t=${num(p, "clock")} profit=${num(p, "profit")}`
-    case "validate":       return `graph validated · n=${num(p, "n")} m=${num(p, "m")}`
-    case "pop":            return `pop n${num(p, "node")} · dist=${num(p, "dist")}`
-    case "settle":         return `settle n${num(p, "node")} · dist=${num(p, "dist")}`
-    case "relax_try":      return `try ${num(p, "u")}→${num(p, "v")} (w=${num(p, "w")})`
-    case "relax_ok":       return `relax ${num(p, "u")}→${num(p, "v")} · new=${num(p, "new")}`
-    case "round_start":    return `BF round ${num(p, "round")}${p.detailed === false ? " (converging…)" : ""}`
-    case "done":           return p.negative_cycle ? "Bellman-Ford: negative cycle found ⚠" : "Bellman-Ford: converged, no negative cycle"
-    case "k_phase":        return `Floyd-Warshall: k=${num(p, "k")}`
-    case "edge_consider":  return `MST: consider ${num(p, "u")}–${num(p, "v")} (w=${num(p, "w")})`
-    case "edge_accept":    return `MST: accept ${num(p, "u")}–${num(p, "v")} (w=${num(p, "w")})`
-    case "edge_reject":    return `MST: reject ${num(p, "u")}–${num(p, "v")} (${p.reason ?? "skip"})`
-    case "cut":            return `MST: cut ${num(p, "u")}–${num(p, "v")} → new zone boundary`
-    default:               return `${s.stage}/${s.kind}`
+  switch (`${s.stage}/${s.kind}`) {
+    case "sim/vehicle_start":   return `vehicle ${num(p, "vehicle")} starts · zone ${(p.zone as number[])?.length ?? 0} orders`
+    case "sim/pickup":          return `veh ${num(p, "vehicle")} picks up order ${num(p, "order")} @ n${num(p, "node")} · t=${num(p, "clock")} load=${num(p, "load")}`
+    case "sim/drop":            return `veh ${num(p, "vehicle")} drops order ${num(p, "order")} · t=${num(p, "clock")} slack=${num(p, "slack")}`
+    case "sim/deadline_miss":   return `veh ${num(p, "vehicle")} MISSED order ${num(p, "order")} by ${Math.abs(num(p, "slack")).toFixed(1)} min`
+    case "sim/vehicle_end":     return `vehicle ${num(p, "vehicle")} back at depot · t=${num(p, "clock")} profit=${num(p, "profit")}`
+    case "build/validate":      return `graph validated · n=${num(p, "n")} m=${num(p, "m")}`
+    case "dijkstra/pop":        return `pop n${num(p, "node")} · dist=${num(p, "dist")}`
+    case "dijkstra/settle":     return `settle n${num(p, "node")} · dist=${num(p, "dist")}`
+    case "dijkstra/relax_try":
+    case "bellman/relax_try":   return `try ${num(p, "u")}→${num(p, "v")} (w=${num(p, "w")})`
+    case "dijkstra/relax_ok":
+    case "bellman/relax_ok":    return `relax ${num(p, "u")}→${num(p, "v")} · new=${num(p, "new")}`
+    case "bellman/round_start": return `BF round ${num(p, "round")}${p.detailed === false ? " (converging…)" : ""}`
+    case "bellman/done":        return p.negative_cycle ? "Bellman-Ford: negative cycle found ⚠" : "Bellman-Ford: converged, no negative cycle"
+    case "floyd/k_phase":       return `Floyd-Warshall: k=${num(p, "k")}`
+    case "mst/edge_consider":   return `MST: consider ${num(p, "u")}–${num(p, "v")} (w=${num(p, "w")})`
+    case "mst/edge_accept":     return `MST: accept ${num(p, "u")}–${num(p, "v")} (w=${num(p, "w")})`
+    case "mst/edge_reject":     return `MST: reject ${num(p, "u")}–${num(p, "v")} (${p.reason ?? "skip"})`
+    case "mst/cut":             return `MST: cut ${num(p, "u")}–${num(p, "v")} → new zone boundary`
+    case "heldkarp/state":      return `Held-Karp: mask=${(p.mask as number)?.toString(2)} last=n${num(p, "last")} cost=${num(p, "cost")}`
+    case "heldkarp/done":       return `Held-Karp: optimal route cost=${num(p, "cost")} (${num(p, "stops")} stops)`
+    case "twoopt/insert":       return `cheapest-insertion: order ${num(p, "order_id")} (Δ=${num(p, "delta").toFixed(1)})`
+    case "twoopt/swap":         return `2-opt: swap i=${num(p, "i")} j=${num(p, "j")} (Δ=${num(p, "delta").toFixed(1)})`
+    case "repair/drop":         return `repair: dropped order ${num(p, "order_id")} (${p.reason ?? "infeasible"})`
+    default:                    return `${s.stage}/${s.kind}`
   }
 }
 
@@ -93,6 +107,9 @@ function apply(v: ViewState, s: Step): void {
       if (s.kind === "row_start") v.dpRow = num(p, "i")
       else if (s.kind === "cell_take" || s.kind === "cell_best")
         v.dpCells.set(`${num(p, "t")},${num(p, "c")}`, num(p, "value"))
+      break
+    case "repair":
+      if (s.kind === "drop") v.repaired.add(num(p, "order_id"))
       break
     case "sim":
       if (s.kind === "vehicle_start") { v.vehicle = num(p, "vehicle"); v.clock = 0 }

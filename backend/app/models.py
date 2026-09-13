@@ -114,6 +114,7 @@ class VehiclePlan(BaseModel):
     travel_time: float = 0.0
     travel_cost: float = 0.0  # sum of directional edge cost along `route` (Step 4)
     mst_lower_bound: float | None = None  # Step 5: TSP lower bound for this zone
+    dp_bound: float = 0.0  # Step 6: Dantzig LP bound for this vehicle's zone
     peak_load: int = 0
     feasible: bool = True
 
@@ -186,5 +187,28 @@ class SolveResponse(BaseModel):
     trace: list[Step] = Field(default_factory=list)
     truncated: bool = False
     stride: int = 1
-    stub: bool = False  # True while the pipeline is still the Step-1 placeholder
+    stub: bool = False  # every stage real as of Step 7 -- see pipeline.py's docstring
     apsp: ApspMatrix | None = None  # Step 4: set only for apsp="floyd"|"johnson"
+
+
+# --------------------------------------------------------------------------- #
+# Step 8: experiment sweeps
+# --------------------------------------------------------------------------- #
+
+BenchExperiment = Literal["apsp_crossover", "selector_quality", "zoning_quality", "size", "capacity"]
+
+
+class BenchRequest(BaseModel):
+    experiment: BenchExperiment
+    # Deliberately untyped per-experiment overrides (e.g. {"node_counts":
+    # [20,40], "seeds": [1,2]}) rather than one field per possible sweep
+    # parameter across five different experiment shapes; validated by
+    # calling the target sweep function itself, which is the single source
+    # of truth for what each experiment actually accepts.
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
+class BenchResponse(BaseModel):
+    experiment: BenchExperiment
+    rows: list[dict[str, Any]] = Field(default_factory=list)
+    runtime_ms: float = 0.0

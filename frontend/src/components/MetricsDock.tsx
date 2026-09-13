@@ -70,6 +70,14 @@ export function MetricsDock({ metrics, plans, capacity }: {
                 </span>
               </div>
             )}
+            {p.dp_bound > 0 && (
+              <div className="tabular mt-0.5 text-[10px] text-muted">
+                LP bound {p.dp_bound.toFixed(0)}
+                <span className="ml-1 text-warn">
+                  (−{(100 * (1 - p.profit / p.dp_bound)).toFixed(0)}% below ceiling)
+                </span>
+              </div>
+            )}
             <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-line">
               <motion.div className="h-full rounded-full"
                 initial={{ width: 0 }}

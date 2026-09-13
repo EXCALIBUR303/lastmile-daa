@@ -84,7 +84,7 @@ def test_solve_returns_wellformed_response():
     r = client.post("/api/solve", json={"generate": {"seed": 7}, "config": {}})
     assert r.status_code == 200
     d = r.json()
-    assert d["stub"] is True, "flag must stay True until the real pipeline lands"
+    assert d["stub"] is False, "every stage is real as of Step 7 -- see pipeline.py's docstring"
     assert len(d["trace"]) > 0
     assert d["result"]["metrics"]["orders_total"] == 12
 
