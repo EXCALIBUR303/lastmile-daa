@@ -1,126 +1,143 @@
-import { MotionConfig, motion } from "motion/react"
-import { useEffect, useMemo, useState } from "react"
-import { ApspMatrix } from "./components/ApspMatrix"
-import { CanvasStage } from "./components/CanvasStage"
-import { LeftPanel, SegButton } from "./components/Controls"
-import { BenchPanel } from "./components/BenchPanel"
-import { DpTable } from "./components/DpTable"
-import { EventLog, MetricsDock } from "./components/MetricsDock"
-import { Transport, usePlaybackClock } from "./components/Transport"
-import { spring } from "./motion/presets"
+import { MotionConfig } from "motion/react"
+import { useEffect, useMemo } from "react"
+import { ControlInspector } from "./components/controls/ControlInspector"
+import { SimulationControls } from "./components/controls/SimulationControls"
+import { GraphWorkspace } from "./components/graph/GraphWorkspace"
+import { collectAlerts } from "./lib/alerts"
+import { ResultsInspector } from "./components/results/ResultsInspector"
+import { CommandBar } from "./components/shell/CommandBar"
+import { Drawer } from "./components/shell/Drawer"
+import { useLayoutMode } from "./lib/useMediaQuery"
+import { usePlaybackClock } from "./lib/usePlaybackClock"
 import { useInstance } from "./store/instance"
 import { usePlayback } from "./store/playback"
 import { useSolution } from "./store/solution"
+import { useUi } from "./store/ui"
 import { buildCheckpoints, emptyView, foldTrace } from "./trace/reducer"
+import type { Step } from "./types"
 
-const RIGHT_TABS = ["trace", "matrix", "dp", "bench"] as const
-type RightTab = (typeof RIGHT_TABS)[number]
+const NO_TRACE: Step[] = []
 
 export default function App() {
   const { gen, cfg, setGen, setCfg } = useInstance()
   const { data, loading, error, run } = useSolution()
-  const [rightTab, setRightTab] = useState<RightTab>("trace")
   const cursor = usePlayback((s) => s.cursor)
   const total = usePlayback((s) => s.total)
+  const layout = useLayoutMode()
+  const { leftOpen, rightOpen, mobilePane, setMobilePane, select, focusVehicle } = useUi()
 
   usePlaybackClock()
 
   // first run on mount
   useEffect(() => { void run(gen, cfg) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const trace = data?.trace ?? []
+  // Stable empty reference: a fresh `[]` each render would re-run the
+  // checkpoint build and the fold on every unrelated state change.
+  const trace = data?.trace ?? NO_TRACE
   const checkpoints = useMemo(() => buildCheckpoints(trace), [trace])
   const view = useMemo(
     () => (trace.length ? foldTrace(trace, cursor, checkpoints) : emptyView()),
     [trace, cursor, checkpoints],
   )
 
+  // A new solve invalidates anything selected or isolated from the previous one.
+  const runSolve = () => {
+    select(null)
+    focusVehicle(null)
+    void run(gen, cfg)
+  }
+
+  const stage = cursor > 0 && trace.length ? trace[Math.min(cursor, trace.length) - 1].stage : null
+  const alerts = data ? collectAlerts(data.result.metrics, data.result.plans) : []
+
+  const controls = (
+    <ControlInspector gen={gen} setGen={setGen} cfg={cfg} setCfg={setCfg}
+                      disabled={loading} onRun={runSolve} />
+  )
+
+  const results = data ? (
+    <ResultsInspector data={data} view={view} capacity={gen.capacity}
+                      horizon={gen.horizon} ordersRequested={gen.n_orders} />
+  ) : (
+    <p className="p-4 text-[11px] text-muted">
+      {loading ? "Solving…" : "No results yet. Choose Run to solve an instance."}
+    </p>
+  )
+
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex h-full flex-col bg-bg text-ink">
-        {/* ---- top bar */}
-        <header className="flex items-center gap-4 border-b border-line bg-panel px-4 py-2.5">
-          <div>
-            <h1 className="text-[13px] font-semibold">Last-mile Delivery with Deadlines</h1>
-            <p className="text-[11px] text-muted">DAA PBL · Group 7 · graphs + greedy + DP</p>
+      <div className="flex h-full flex-col overflow-hidden bg-canvas text-ink">
+        <CommandBar
+          instance={data?.instance ?? null}
+          seed={gen.seed}
+          loading={loading}
+          error={error}
+          alertCount={alerts.length}
+          onRun={runSolve}
+          layout={layout}
+        />
+
+        <div className="relative flex min-h-0 flex-1">
+          {/* ---- desktop: docked control inspector */}
+          {layout === "desktop" && leftOpen && (
+            <aside
+              aria-label="Controls"
+              className="scroll-thin w-[276px] shrink-0 overflow-y-auto border-r border-line bg-panel"
+            >
+              {controls}
+            </aside>
+          )}
+
+          {/* ---- graph is the workspace at every size */}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <GraphWorkspace
+              inst={data?.instance ?? null}
+              plans={data?.result.plans ?? []}
+              view={view}
+              showRoutes={cursor > 0}
+              loading={loading}
+              error={error}
+              stage={stage}
+              stepLabel={`${cursor.toLocaleString()}/${total.toLocaleString()}`}
+            />
+            {/* Below the desktop breakpoint the controls live in a drawer, so
+                playback gets a permanent bar here instead -- same component,
+                never two live copies. */}
+            {layout !== "desktop" && <SimulationControls compact />}
           </div>
 
-          {data && !data.stub && (
-            <span className="rounded-md bg-good/15 px-2 py-1 text-[11px] text-good">
-              Steps 1–7 live: real graph → MST zoning → DP selection → Held-Karp/2-opt routing → repair
-            </span>
+          {/* ---- desktop: docked results inspector */}
+          {layout === "desktop" && rightOpen && (
+            <aside
+              aria-label="Results"
+              className="flex w-[364px] shrink-0 flex-col border-l border-line bg-panel"
+            >
+              {results}
+            </aside>
           )}
-          {error && (
-            <span className="rounded-md bg-bad/15 px-2 py-1 text-[11px] text-bad">{error}</span>
+
+          {/* ---- tablet & mobile: the same two panels as sheets */}
+          {layout !== "desktop" && (
+            <>
+              <Drawer
+                open={mobilePane === "controls"}
+                onClose={() => setMobilePane("none")}
+                title="Controls"
+                side={layout === "mobile" ? "bottom" : "left"}
+              >
+                {controls}
+              </Drawer>
+              <Drawer
+                open={mobilePane === "results"}
+                onClose={() => setMobilePane("none")}
+                title="Results"
+                side={layout === "mobile" ? "bottom" : "right"}
+              >
+                <div className="flex min-h-0 flex-1 flex-col">{results}</div>
+              </Drawer>
+            </>
           )}
-
-          <div className="tabular ml-auto flex items-center gap-4 text-[11px] text-muted">
-            {data && (
-              <>
-                <span>n={String(data.instance.meta.n)}</span>
-                <span>m={String(data.instance.meta.m)}</span>
-                <span>deg={String(data.instance.meta.avg_degree)}</span>
-                <span className="text-warn">{String(data.instance.meta.negative_cost_edges)} subsidised</span>
-                <span>{total} steps{data.truncated ? ` (stride ${data.stride})` : ""}</span>
-              </>
-            )}
-          </div>
-
-          <motion.button
-            onClick={() => void run(gen, cfg)} disabled={loading}
-            whileTap={{ scale: 0.96 }} transition={spring}
-            className="rounded-md bg-accent px-4 py-1.5 text-[12px] font-semibold text-bg disabled:opacity-40"
-          >
-            {loading ? "Solving…" : "Run"}
-          </motion.button>
-        </header>
-
-        {/* ---- body */}
-        <div className="grid min-h-0 flex-1 grid-cols-[260px_1fr_330px]">
-          <aside className="overflow-y-auto border-r border-line bg-panel p-4">
-            <LeftPanel gen={gen} setGen={setGen} cfg={cfg} setCfg={setCfg} disabled={loading} />
-          </aside>
-
-          <main className="relative min-w-0 bg-bg">
-            {data
-              ? <CanvasStage inst={data.instance} plans={data.result.plans}
-                             view={view} showRoutes={cursor > 0} />
-              : <div className="flex h-full items-center justify-center text-muted">
-                  {loading ? "generating…" : "no instance"}
-                </div>}
-            {data && (
-              <div className="tabular pointer-events-none absolute left-4 top-4 rounded-md bg-panel/80 px-3 py-1.5 text-[12px] backdrop-blur">
-                clock <span className="text-accent">{view.clock.toFixed(1)}</span> min
-                {view.late.size > 0 && <span className="ml-3 text-bad">{view.late.size} late</span>}
-              </div>
-            )}
-          </main>
-
-          <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto border-l border-line bg-panel p-4">
-            {data && (
-              <>
-                <MetricsDock metrics={data.result.metrics} plans={data.result.plans}
-                             capacity={gen.capacity} />
-                <div className="min-h-0">
-                  <SegButton id="right-tab" options={RIGHT_TABS} value={rightTab}
-                             onChange={setRightTab} />
-                  <div className="mt-2">
-                    {rightTab === "trace" && <EventLog view={view} />}
-                    {rightTab === "matrix" && <ApspMatrix apsp={data.apsp} k={view.apspK} />}
-                    {rightTab === "dp" && (
-                      <DpTable dpRow={view.dpRow} dpCells={view.dpCells}
-                               T={Math.ceil(gen.horizon)} Q={gen.capacity}
-                               totalOrders={gen.n_orders} />
-                    )}
-                    {rightTab === "bench" && <BenchPanel />}
-                  </div>
-                </div>
-              </>
-            )}
-          </aside>
         </div>
-
-        <Transport />
       </div>
     </MotionConfig>
   )
