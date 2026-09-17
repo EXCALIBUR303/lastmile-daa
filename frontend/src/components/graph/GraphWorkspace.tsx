@@ -5,7 +5,7 @@ import {
   clampZoom, clientToUnits, expandToAspect, fitViewBox, pixelsToUnits, zoomAt, type ViewBox,
 } from "../../lib/geometry"
 import { minutes } from "../../lib/format"
-import { stageColor } from "../../lib/tokens"
+import { stageColorFor, useTokens } from "../../lib/tokens"
 import { useUi } from "../../store/ui"
 import type { ViewState } from "../../trace/reducer"
 import type { Instance, VehiclePlan } from "../../types"
@@ -34,6 +34,7 @@ export function GraphWorkspace({
   stage: string | null
   stepLabel: string
 }) {
+  const t = useTokens()
   const selection = useUi((s) => s.selection)
   const select = useUi((s) => s.select)
   const focusedVehicle = useUi((s) => s.focusedVehicle)
@@ -226,7 +227,7 @@ export function GraphWorkspace({
                         border border-line bg-panel/88 px-2.5 py-1.5 backdrop-blur-sm">
           <span
             className="h-1.5 w-1.5 shrink-0 rounded-full"
-            style={{ background: stage ? (stageColor[stage] ?? "#93a1bb") : "#6b7893" }}
+            style={{ background: stage ? stageColorFor(t, stage) : t.text.faint }}
           />
           <span className="text-[11px] text-muted">{stage ?? "idle"}</span>
           <span className="mono text-[11px] text-accent">{minutes(view.clock)}</span>

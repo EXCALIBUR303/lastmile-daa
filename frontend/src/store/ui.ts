@@ -6,6 +6,7 @@ import { create } from "zustand"
 export type ResultTab = "summary" | "vehicles" | "algorithms" | "experiments"
 export type AlgorithmView = "trace" | "matrix" | "dp"
 export type MobilePane = "none" | "controls" | "results"
+export type ThemeName = "dark" | "light"
 
 export type Selection =
   | { kind: "node"; id: number }
@@ -13,6 +14,7 @@ export type Selection =
   | null
 
 interface UiStore {
+  theme: ThemeName
   leftOpen: boolean
   rightOpen: boolean
   resultTab: ResultTab
@@ -24,6 +26,8 @@ interface UiStore {
   legendOpen: boolean
   openSections: Record<string, boolean>
 
+  setTheme: (t: ThemeName) => void
+  toggleTheme: () => void
   toggleLeft: () => void
   toggleRight: () => void
   setResultTab: (t: ResultTab) => void
@@ -47,7 +51,14 @@ const DEFAULT_SECTIONS: Record<string, boolean> = {
   simulation: true,
 }
 
+/** Reflect the theme onto <html> so the CSS custom properties switch too. */
+const applyTheme = (t: ThemeName) => {
+  if (typeof document !== "undefined") document.documentElement.dataset.theme = t
+  return t
+}
+
 export const useUi = create<UiStore>((set) => ({
+  theme: applyTheme("dark"),
   leftOpen: true,
   rightOpen: true,
   resultTab: "summary",
@@ -58,6 +69,8 @@ export const useUi = create<UiStore>((set) => ({
   legendOpen: true,
   openSections: DEFAULT_SECTIONS,
 
+  setTheme: (t) => set({ theme: applyTheme(t) }),
+  toggleTheme: () => set((s) => ({ theme: applyTheme(s.theme === "dark" ? "light" : "dark") })),
   toggleLeft: () => set((s) => ({ leftOpen: !s.leftOpen })),
   toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
   setResultTab: (resultTab) => set({ resultTab }),

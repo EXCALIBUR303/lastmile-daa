@@ -1,21 +1,25 @@
 import { Fragment, useEffect, useRef } from "react"
 import { motion } from "motion/react"
 import { minutes } from "../../lib/format"
-import { surface } from "../../lib/tokens"
+import { useTokens, type Palette } from "../../lib/tokens"
 import type { ApspMatrixData } from "../../types"
 
 const DOM_GRID_MAX_N = 48
 
-function heat(v: number | null, min: number, max: number): string {
-  if (v === null) return surface.line
-  const t = max > min ? (v - min) / (max - min) : 0
-  // dark panel -> accent cyan, low(close)=dark, high(far)=bright
-  const l = 14 + t * 40
-  const s = 55 + t * 15
-  return `hsl(198 ${s}% ${l}%)`
+/** Ramp runs dark->bright on the dark theme and bright->dark on the light one,
+ *  so "further away" always reads as more contrast against the surface. */
+function heatFor(p: Palette) {
+  return (v: number | null, min: number, max: number): string => {
+    if (v === null) return p.surface.line
+    const t = max > min ? (v - min) / (max - min) : 0
+    const l = p.heat.lightFrom + t * (p.heat.lightTo - p.heat.lightFrom)
+    const s = 55 + t * 15
+    return `hsl(${p.heat.apspHue} ${s}% ${l}%)`
+  }
 }
 
 function Scale({ min, max }: { min: number; max: number }) {
+  const heat = heatFor(useTokens())
   return (
     <div className="flex items-center gap-2">
       <span className="mono text-[10px] text-faint">{minutes(min)}</span>
@@ -30,6 +34,7 @@ function Scale({ min, max }: { min: number; max: number }) {
 }
 
 function CanvasHeatmap({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
+  const palette = useTokens()
   const ref = useRef<HTMLCanvasElement>(null)
   const n = apsp.node_ids.length
   const finite = apsp.matrix.flat().filter((x): x is number => x !== null)
@@ -41,6 +46,7 @@ function CanvasHeatmap({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
+    const heat = heatFor(palette)
     const cell = canvas.width / n
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
@@ -49,11 +55,11 @@ function CanvasHeatmap({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
       }
     }
     if (k >= 0) {
-      ctx.fillStyle = "rgba(255,200,87,0.22)"
+      ctx.fillStyle = `color-mix(in srgb, ${palette.status.warn} 22%, transparent)`
       ctx.fillRect(0, k * cell, canvas.width, cell)
       ctx.fillRect(k * cell, 0, cell, canvas.height)
     }
-  }, [apsp, k, n, min, max])
+  }, [apsp, k, n, min, max, palette])
 
   return (
     <div className="space-y-1.5">
@@ -66,6 +72,9 @@ function CanvasHeatmap({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
 }
 
 function DomGrid({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
+  const palette = useTokens()
+  const heat = heatFor(palette)
+  const band = `color-mix(in srgb, ${palette.status.warn} 22%, transparent)`
   const n = apsp.node_ids.length
   const finite = apsp.matrix.flat().filter((x): x is number => x !== null)
   const min = finite.length ? Math.min(...finite) : 0
@@ -81,14 +90,14 @@ function DomGrid({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
             <div
               key={`h${id}`}
               className="mono flex items-center justify-center text-[10px] text-faint"
-              style={{ height: cellPx, background: j === k ? "#3a2f1a" : "transparent" }}
+              style={{ height: cellPx, background: j === k ? band : "transparent" }}
             >{id}</div>
           ))}
           {apsp.node_ids.map((rid, i) => (
             <Fragment key={`row${rid}`}>
               <div
                 className="mono flex items-center justify-center text-[10px] text-faint"
-                style={{ width: cellPx, background: i === k ? "#3a2f1a" : "transparent" }}
+                style={{ width: cellPx, background: i === k ? band : "transparent" }}
               >{rid}</div>
               {apsp.node_ids.map((_, j) => {
                 const v = apsp.matrix[i][j]
@@ -97,7 +106,7 @@ function DomGrid({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
                   <motion.div
                     key={`c${i}-${j}`}
                     initial={false}
-                    animate={{ outline: onBand ? "1px solid #ffc857" : "1px solid transparent" }}
+                    animate={{ outline: onBand ? `1px solid ${palette.status.warn}` : "1px solid transparent" }}
                     transition={{ duration: 0.2 }}
                     title={`n${apsp.node_ids[i]} → n${apsp.node_ids[j]} = ${v === null ? "unreachable" : minutes(v)}`}
                     style={{ height: cellPx, background: heat(v, min, max) }}

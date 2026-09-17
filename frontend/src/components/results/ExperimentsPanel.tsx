@@ -6,7 +6,7 @@ import {
 } from "recharts"
 import { runBench } from "../../api"
 import { moneyShort, ms } from "../../lib/format"
-import { surface, text as textToken, VEHICLE_COLORS } from "../../lib/tokens"
+import { useTokens, type Palette } from "../../lib/tokens"
 import type { BenchExperiment, BenchRow } from "../../types"
 import { Segmented } from "../ui/Field"
 
@@ -65,20 +65,20 @@ function meanBy(rows: BenchRow[], groupKey: string, valueKey: string) {
     .sort((a, b) => Number(a.key) - Number(b.key))
 }
 
-// ---- shared recharts theming ---- //
-const AXIS = { stroke: textToken.faint, fontSize: 11, tickLine: false } as const
-const GRID = { stroke: surface.line, strokeDasharray: "2 4" } as const
-const TOOLTIP_STYLE = {
+// ---- shared recharts theming, derived from the active palette ---- //
+const axisOf = (p: Palette) => ({ stroke: p.text.faint, fontSize: 11, tickLine: false })
+const gridOf = (p: Palette) => ({ stroke: p.surface.line, strokeDasharray: "2 4" })
+const tooltipOf = (p: Palette) => ({
   contentStyle: {
-    background: surface.raised,
-    border: `1px solid ${surface.line}`,
+    background: p.surface.panel,
+    border: `1px solid ${p.surface.line}`,
     borderRadius: 6,
     fontSize: 11,
     padding: "6px 8px",
   },
-  labelStyle: { color: textToken.ink, marginBottom: 2, fontSize: 11 },
-  itemStyle: { color: textToken.muted, fontSize: 11 },
-} as const
+  labelStyle: { color: p.text.ink, marginBottom: 2, fontSize: 11 },
+  itemStyle: { color: p.text.muted, fontSize: 11 },
+})
 const LEGEND_STYLE = { fontSize: 11, paddingTop: 4 } as const
 
 /** Recharts hands formatters a `ValueType | undefined`; narrow it once here
@@ -86,19 +86,20 @@ const LEGEND_STYLE = { fontSize: 11, paddingTop: 4 } as const
 const tip = (f: (n: number) => string) => (value: unknown): string =>
   typeof value === "number" ? f(value) : String(value ?? "—")
 
-function axisLabel(value: string, angle: 0 | -90) {
+function axisLabel(p: Palette, value: string, angle: 0 | -90) {
   return {
     value,
     angle,
     position: angle === 0 ? ("insideBottom" as const) : ("insideLeft" as const),
     offset: angle === 0 ? -4 : 10,
-    style: { fill: textToken.faint, fontSize: 10, textAnchor: "middle" as const },
+    style: { fill: p.text.faint, fontSize: 10, textAnchor: "middle" as const },
   }
 }
 
 const CHART_H = 210
 
 function ApspChart({ rows }: { rows: BenchRow[] }) {
+  const p = useTokens()
   const modes = ["dijkstra", "floyd", "johnson"] as const
   const densities = [...new Set(rows.map((r) => Number(r.density)))].sort((a, b) => a - b)
   const data = densities.map((d) => {
@@ -112,13 +113,13 @@ function ApspChart({ rows }: { rows: BenchRow[] }) {
   return (
     <ResponsiveContainer width="100%" height={CHART_H}>
       <LineChart data={data} margin={{ top: 6, right: 8, bottom: 18, left: 2 }}>
-        <CartesianGrid {...GRID} />
-        <XAxis dataKey="density" {...AXIS} label={axisLabel("edge density", 0)} />
-        <YAxis {...AXIS} width={42} label={axisLabel("runtime (ms)", -90)} />
-        <RTooltip {...TOOLTIP_STYLE} formatter={tip(ms)} />
+        <CartesianGrid {...gridOf(p)} />
+        <XAxis dataKey="density" {...axisOf(p)} label={axisLabel(p, "edge density", 0)} />
+        <YAxis {...axisOf(p)} width={42} label={axisLabel(p, "runtime (ms)", -90)} />
+        <RTooltip {...tooltipOf(p)} formatter={tip(ms)} />
         <Legend {...{ wrapperStyle: LEGEND_STYLE }} />
         {modes.map((m, i) => (
-          <Line key={m} type="monotone" dataKey={m} name={m} stroke={VEHICLE_COLORS[i]}
+          <Line key={m} type="monotone" dataKey={m} name={m} stroke={p.vehicles[i]}
                 strokeWidth={2} dot={{ r: 2.5 }} isAnimationActive={false} />
         ))}
       </LineChart>
@@ -127,17 +128,18 @@ function ApspChart({ rows }: { rows: BenchRow[] }) {
 }
 
 function SizeChart({ rows }: { rows: BenchRow[] }) {
+  const p = useTokens()
   const data = meanBy(rows, "n_nodes", "runtime_ms").map((d) => ({ nodes: Number(d.key), runtime: d.value }))
   return (
     <ResponsiveContainer width="100%" height={CHART_H}>
       <LineChart data={data} margin={{ top: 6, right: 8, bottom: 18, left: 2 }}>
-        <CartesianGrid {...GRID} />
-        <XAxis dataKey="nodes" {...AXIS} label={axisLabel("nodes in graph", 0)} />
-        <YAxis {...AXIS} width={42} label={axisLabel("runtime (ms)", -90)} />
-        <RTooltip {...TOOLTIP_STYLE} formatter={tip(ms)}
+        <CartesianGrid {...gridOf(p)} />
+        <XAxis dataKey="nodes" {...axisOf(p)} label={axisLabel(p, "nodes in graph", 0)} />
+        <YAxis {...axisOf(p)} width={42} label={axisLabel(p, "runtime (ms)", -90)} />
+        <RTooltip {...tooltipOf(p)} formatter={tip(ms)}
                   labelFormatter={(l) => `${l} nodes`} />
         <Legend {...{ wrapperStyle: LEGEND_STYLE }} />
-        <Line type="monotone" dataKey="runtime" name="end-to-end solve" stroke={VEHICLE_COLORS[0]}
+        <Line type="monotone" dataKey="runtime" name="end-to-end solve" stroke={p.vehicles[0]}
               strokeWidth={2} dot={{ r: 2.5 }} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
@@ -145,17 +147,18 @@ function SizeChart({ rows }: { rows: BenchRow[] }) {
 }
 
 function CapacityChart({ rows }: { rows: BenchRow[] }) {
+  const p = useTokens()
   const data = meanBy(rows, "capacity", "profit").map((d) => ({ capacity: Number(d.key), profit: d.value }))
   return (
     <ResponsiveContainer width="100%" height={CHART_H}>
       <LineChart data={data} margin={{ top: 6, right: 8, bottom: 18, left: 2 }}>
-        <CartesianGrid {...GRID} />
-        <XAxis dataKey="capacity" {...AXIS} label={axisLabel("vehicle capacity (units)", 0)} />
-        <YAxis {...AXIS} width={42} tickFormatter={moneyShort} label={axisLabel("profit (units)", -90)} />
-        <RTooltip {...TOOLTIP_STYLE} formatter={tip(moneyShort)}
+        <CartesianGrid {...gridOf(p)} />
+        <XAxis dataKey="capacity" {...axisOf(p)} label={axisLabel(p, "vehicle capacity (units)", 0)} />
+        <YAxis {...axisOf(p)} width={42} tickFormatter={moneyShort} label={axisLabel(p, "profit (units)", -90)} />
+        <RTooltip {...tooltipOf(p)} formatter={tip(moneyShort)}
                   labelFormatter={(l) => `capacity ${l}`} />
         <Legend {...{ wrapperStyle: LEGEND_STYLE }} />
-        <Line type="monotone" dataKey="profit" name="mean profit achieved" stroke={VEHICLE_COLORS[3]}
+        <Line type="monotone" dataKey="profit" name="mean profit achieved" stroke={p.vehicles[3]}
               strokeWidth={2} dot={{ r: 2.5 }} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
@@ -163,6 +166,7 @@ function CapacityChart({ rows }: { rows: BenchRow[] }) {
 }
 
 function SelectorChart({ rows }: { rows: BenchRow[] }) {
+  const p = useTokens()
   const selectors = ["dp_deadline", "dp_01", "greedy_edd", "greedy_density"]
   const buckets = [...new Set(rows.map((r) => Number(r.n_orders)))].sort((a, b) => a - b)
   const data = buckets.map((n) => {
@@ -176,15 +180,15 @@ function SelectorChart({ rows }: { rows: BenchRow[] }) {
   return (
     <ResponsiveContainer width="100%" height={CHART_H}>
       <BarChart data={data} margin={{ top: 6, right: 8, bottom: 18, left: 2 }}>
-        <CartesianGrid {...GRID} vertical={false} />
-        <XAxis dataKey="n_orders" {...AXIS} label={axisLabel("orders in instance", 0)} />
-        <YAxis {...AXIS} width={42} label={axisLabel("repair drops", -90)} />
-        <RTooltip {...TOOLTIP_STYLE} formatter={tip((v) => v.toFixed(2))}
+        <CartesianGrid {...gridOf(p)} vertical={false} />
+        <XAxis dataKey="n_orders" {...axisOf(p)} label={axisLabel(p, "orders in instance", 0)} />
+        <YAxis {...axisOf(p)} width={42} label={axisLabel(p, "repair drops", -90)} />
+        <RTooltip {...tooltipOf(p)} formatter={tip((v) => v.toFixed(2))}
                   labelFormatter={(l) => `${l} orders`} />
         <Legend {...{ wrapperStyle: LEGEND_STYLE }} />
         {selectors.map((sel, i) => (
           <Bar key={sel} dataKey={sel} name={sel.replace(/_/g, " ")}
-               fill={VEHICLE_COLORS[i]} isAnimationActive={false} />
+               fill={p.vehicles[i]} isAnimationActive={false} />
         ))}
       </BarChart>
     </ResponsiveContainer>
@@ -192,6 +196,7 @@ function SelectorChart({ rows }: { rows: BenchRow[] }) {
 }
 
 function ZoningChart({ rows }: { rows: BenchRow[] }) {
+  const p = useTokens()
   const order = ["prim", "kruskal", "none"]
   const means = meanBy(rows, "zoning", "total_travel_time")
   const data = order.map((z) => ({
@@ -201,12 +206,12 @@ function ZoningChart({ rows }: { rows: BenchRow[] }) {
   return (
     <ResponsiveContainer width="100%" height={CHART_H}>
       <BarChart data={data} margin={{ top: 6, right: 8, bottom: 18, left: 2 }}>
-        <CartesianGrid {...GRID} vertical={false} />
-        <XAxis dataKey="zoning" {...AXIS} label={axisLabel("zoning strategy", 0)} />
-        <YAxis {...AXIS} width={42} label={axisLabel("travel (min)", -90)} />
-        <RTooltip {...TOOLTIP_STYLE} formatter={tip((v) => `${v.toFixed(1)} min`)} />
+        <CartesianGrid {...gridOf(p)} vertical={false} />
+        <XAxis dataKey="zoning" {...axisOf(p)} label={axisLabel(p, "zoning strategy", 0)} />
+        <YAxis {...axisOf(p)} width={42} label={axisLabel(p, "travel (min)", -90)} />
+        <RTooltip {...tooltipOf(p)} formatter={tip((v) => `${v.toFixed(1)} min`)} />
         <Legend {...{ wrapperStyle: LEGEND_STYLE }} />
-        <Bar dataKey="travel" name="mean fleet travel time" fill={VEHICLE_COLORS[2]} isAnimationActive={false} />
+        <Bar dataKey="travel" name="mean fleet travel time" fill={p.vehicles[2]} isAnimationActive={false} />
       </BarChart>
     </ResponsiveContainer>
   )

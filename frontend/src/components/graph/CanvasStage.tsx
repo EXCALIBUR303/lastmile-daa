@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { useMemo } from "react"
 import { easeOutExpo, nodeVariants, spring } from "../../motion/presets"
 import type { NodeVariantName } from "../../motion/presets"
-import { edgeStroke, nodeFill, vehicleColor } from "../../lib/tokens"
+import { useTokens, vehicleColorFor } from "../../lib/tokens"
 import { viewBoxString, type ViewBox } from "../../lib/geometry"
 import type { Selection } from "../../store/ui"
 import type { ViewState } from "../../trace/reducer"
@@ -28,6 +28,10 @@ export function CanvasStage({
   inst, plans, view, showRoutes, viewBox,
   selection, focusedVehicle, onSelect, labelsVisible,
 }: CanvasProps) {
+  const t = useTokens()
+  const { edgeStroke, nodeFill } = t
+  const vehicleColor = (i: number) => vehicleColorFor(t, i)
+
   const pos = useMemo(() => {
     const m = new Map<number, [number, number]>()
     for (const n of inst.nodes) m.set(n.id, [n.x, n.y])
@@ -191,12 +195,12 @@ export function CanvasStage({
               )}
               <circle
                 cx={x} cy={y} r={r}
-                fill={state === "violated" ? "#ff6b6b" : nodeFill[n.kind as keyof typeof nodeFill]}
-                stroke="#0a0e15" strokeWidth={u(n.kind === "junction" ? 1 : 2)}
+                fill={state === "violated" ? t.status.bad : nodeFill[n.kind as keyof typeof nodeFill]}
+                stroke={t.surface.canvas} strokeWidth={u(n.kind === "junction" ? 1 : 2)}
               />
               {n.label && labelsVisible && (
                 <text x={x} y={y - r - u(5)} textAnchor="middle"
-                      fontSize={u(12)} fill="#93a1bb" className="mono"
+                      fontSize={u(12)} fill={t.text.muted} className="mono"
                       style={{ pointerEvents: "none" }}>{n.label}</text>
               )}
             </motion.g>
@@ -224,7 +228,7 @@ export function CanvasStage({
                 initial={{ r: u(14), opacity: 0.9 }}
                 animate={{ opacity: [0.9, 0.25, 0.9], r: [u(14), u(20), u(14)] }}
                 transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} />
-              <circle r={u(5.5)} fill={vehicleColor(vid)} stroke="#0a0e15" strokeWidth={u(2)} />
+              <circle r={u(5.5)} fill={vehicleColor(vid)} stroke={t.surface.canvas} strokeWidth={u(2)} />
             </motion.g>
           )
         })}

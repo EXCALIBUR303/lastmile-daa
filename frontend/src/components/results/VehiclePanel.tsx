@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { ChevronRight, Crosshair } from "lucide-react"
 import { useState } from "react"
 import { count, minutes, money, signedPercent } from "../../lib/format"
-import { vehicleColor } from "../../lib/tokens"
+import { useTokens, vehicleColorFor } from "../../lib/tokens"
 import { useUi } from "../../store/ui"
 import type { Order, VehiclePlan } from "../../types"
 import { Tooltip } from "../ui/Tooltip"
@@ -24,10 +24,11 @@ function VehicleRow({
   orders: Order[]
 }) {
   const [open, setOpen] = useState(false)
+  const palette = useTokens()
   const focused = useUi((s) => s.focusedVehicle)
   const focusVehicle = useUi((s) => s.focusVehicle)
   const isFocused = focused === plan.vehicle_id
-  const color = vehicleColor(plan.vehicle_id)
+  const color = vehicleColorFor(palette, plan.vehicle_id)
   const lateCount = plan.visits.filter((v) => v.late).length
   const loadPct = capacity > 0 ? Math.min(100, (plan.peak_load / capacity) * 100) : 0
   const panelId = `vehicle-${plan.vehicle_id}-detail`

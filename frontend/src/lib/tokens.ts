@@ -1,77 +1,84 @@
 // Single source of truth for every colour the app draws with.
 //
-// DOM elements should use the Tailwind utilities generated from index.css's
-// @theme block (text-good, bg-panel, ...). These constants exist for the two
-// places a utility class cannot reach: SVG paint attributes and 2D canvas
-// fillStyle. The hexes in index.css mirror this file -- change both together.
+// DOM elements use the Tailwind utilities generated from index.css's @theme
+// block (text-good, bg-panel, ...), which re-point automatically per theme.
+// These objects exist for the two places a utility class cannot reach: SVG
+// paint attributes and 2D canvas fillStyle. Components that paint should call
+// `useTokens()` so they follow the active theme; the hex values here mirror
+// index.css -- change both together.
 
-export const surface = {
-  canvas: "#0a0e15",
-  panel: "#111725",
-  raised: "#18202f",
-  line: "#232d40",
-  lineStrong: "#31405a",
-} as const
+import { useUi } from "../store/ui"
 
-// Both greys are set by measured contrast against --color-panel (#111725),
-// the darkest surface they sit on: muted 6.9:1, faint 5.1:1. The originals
-// (#7d8aa3 / #6b7893) measured 4.8:1 and 4.0:1, the latter failing AA for
-// the 10-11px captions it was used on.
-export const text = {
-  ink: "#e8eefa",
-  muted: "#93a1bb",
-  faint: "#7b8aa6",
-} as const
+export type ThemeName = "dark" | "light"
 
-export const status = {
-  accent: "#5ad1ff",
-  good: "#3ddc97",
-  warn: "#ffc857",
-  bad: "#ff6b6b",
-  violet: "#c084fc",
-} as const
-
-/** Route colours. Index by vehicle id; also doubles as the categorical series
- *  palette for benchmark charts so a "vehicle 2" line reads the same hue. */
-export const VEHICLE_COLORS = [
-  "#5ad1ff", // cyan
-  "#c084fc", // violet
-  "#3ddc97", // green
-  "#ffc857", // amber
-  "#ff8fab", // pink
-] as const
-
-export const vehicleColor = (i: number) => VEHICLE_COLORS[i % VEHICLE_COLORS.length]
-
-/** Node roles in the delivery network. */
-export const nodeFill = {
-  depot: "#ffc857",
-  pickup: "#5ad1ff",
-  drop: "#c084fc",
-  junction: "#5b7099",
-} as const
-
-/** Edge roles. `network` is the unselected road graph and must stay quiet so
- *  routes, MST links and shortest-path relaxations can read as emphasis. */
-export const edgeStroke = {
-  network: "#2b3b57",
-  subsidised: "#ffc857",
-  relaxed: "#5ad1ff",
-  mst: "#3ddc97",
-  selected: "#ffffff",
-} as const
-
-/** Per-stage accent used by the trace log and the pipeline indicator. */
-export const stageColor: Record<string, string> = {
-  build: text.muted,
-  dijkstra: status.good,
-  bellman: status.good,
-  floyd: status.accent,
-  johnson: status.accent,
-  mst: status.good,
-  knapsack: status.violet,
-  heldkarp: status.violet,
-  twoopt: status.violet,
-  sim: status.accent,
-  repair: status.warn,
+export interface Palette {
+  surface: { canvas: string; panel: string; raised: string; line: string; lineStrong: string }
+  text: { ink: string; muted: string; faint: string }
+  status: { accent: string; good: string; warn: string; bad: string; violet: string }
+  /** Route colours, also the categorical series palette for benchmark charts. */
+  vehicles: readonly string[]
+  nodeFill: { depot: string; pickup: string; drop: string; junction: string }
+  edgeStroke: { network: string; subsidised: string; relaxed: string; mst: string; selected: string }
+  /** Hue/lightness inputs for the APSP and DP heatmaps. */
+  heat: { apspHue: number; dpHue: number; lightFrom: number; lightTo: number; empty: string }
 }
+
+// Greys are chosen by measured contrast against the darkest/lightest surface
+// they sit on; every text colour clears 4.5:1 in both themes.
+const dark: Palette = {
+  surface: { canvas: "#0a0e15", panel: "#111725", raised: "#18202f", line: "#232d40", lineStrong: "#31405a" },
+  text: { ink: "#e8eefa", muted: "#93a1bb", faint: "#7b8aa6" },
+  status: { accent: "#5ad1ff", good: "#3ddc97", warn: "#ffc857", bad: "#ff6b6b", violet: "#c084fc" },
+  vehicles: ["#5ad1ff", "#c084fc", "#3ddc97", "#ffc857", "#ff8fab"],
+  nodeFill: { depot: "#ffc857", pickup: "#5ad1ff", drop: "#c084fc", junction: "#5b7099" },
+  edgeStroke: { network: "#2b3b57", subsidised: "#ffc857", relaxed: "#5ad1ff", mst: "#3ddc97", selected: "#ffffff" },
+  heat: { apspHue: 198, dpHue: 268, lightFrom: 14, lightTo: 54, empty: "#161e2c" },
+}
+
+// Light is not an inversion: saturated neon reads as glare on white, so the
+// accents are darkened until each clears AA on the panel surface, and the heat
+// ramps run bright->dark instead of dark->bright.
+const light: Palette = {
+  surface: { canvas: "#eef1f6", panel: "#ffffff", raised: "#f4f7fa", line: "#d8dfe9", lineStrong: "#b4bfd0" },
+  text: { ink: "#0f1722", muted: "#525f76", faint: "#5e6a82" },
+  status: { accent: "#0b6f94", good: "#0a7350", warn: "#8a5200", bad: "#b3261e", violet: "#6d28d9" },
+  vehicles: ["#0b6f94", "#6d28d9", "#0a7350", "#8a5200", "#a81b52"],
+  nodeFill: { depot: "#b26a00", pickup: "#0b6f94", drop: "#6d28d9", junction: "#8d9aad" },
+  edgeStroke: { network: "#c3ccda", subsidised: "#b26a00", relaxed: "#0b6f94", mst: "#0a7350", selected: "#0f1722" },
+  heat: { apspHue: 198, dpHue: 268, lightFrom: 92, lightTo: 38, empty: "#eaeef4" },
+}
+
+export const PALETTES: Record<ThemeName, Palette> = { dark, light }
+
+/** Palette for the active theme. Use in anything that paints SVG or canvas. */
+export function useTokens(): Palette {
+  return PALETTES[useUi((s) => s.theme)]
+}
+
+export const vehicleColorFor = (p: Palette, i: number) => p.vehicles[i % p.vehicles.length]
+
+/** Per-stage accent for the trace log and status readout. */
+export function stageColorFor(p: Palette, stage: string): string {
+  const map: Record<string, string> = {
+    build: p.text.muted,
+    dijkstra: p.status.good,
+    bellman: p.status.good,
+    floyd: p.status.accent,
+    johnson: p.status.accent,
+    mst: p.status.good,
+    knapsack: p.status.violet,
+    heldkarp: p.status.violet,
+    twoopt: p.status.violet,
+    sim: p.status.accent,
+    repair: p.status.warn,
+  }
+  return map[stage] ?? p.text.muted
+}
+
+// ---- Static dark-palette aliases, kept for non-themed callers (motion
+// keyframe filters, which are baked once at module load). ----
+export const surface = dark.surface
+export const text = dark.text
+export const status = dark.status
+export const VEHICLE_COLORS = dark.vehicles
+export const vehicleColor = (i: number) => dark.vehicles[i % dark.vehicles.length]

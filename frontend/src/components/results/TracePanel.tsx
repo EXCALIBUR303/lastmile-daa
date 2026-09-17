@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react"
-import { stageColor } from "../../lib/tokens"
+import { stageColorFor, useTokens } from "../../lib/tokens"
 import { spring } from "../../motion/presets"
 import type { ViewState } from "../../trace/reducer"
 
@@ -7,6 +7,7 @@ const VISIBLE = 18
 
 /** The most recent algorithm events, newest first. */
 export function TracePanel({ view, total }: { view: ViewState; total: number }) {
+  const t = useTokens()
   const recent = view.log.slice(-VISIBLE).reverse()
 
   if (total === 0) {
@@ -40,7 +41,7 @@ export function TracePanel({ view, total }: { view: ViewState; total: number }) 
           >
             <span
               className="mono w-16 shrink-0 truncate font-medium"
-              style={{ color: e.kind === "deadline_miss" ? "#ff6b6b" : (stageColor[e.stage] ?? "#93a1bb") }}
+              style={{ color: e.kind === "deadline_miss" ? t.status.bad : stageColorFor(t, e.stage) }}
             >
               {e.stage}
             </span>

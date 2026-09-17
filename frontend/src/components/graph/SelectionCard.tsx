@@ -1,7 +1,7 @@
 import { motion } from "motion/react"
 import { X } from "lucide-react"
 import { minutes, money } from "../../lib/format"
-import { nodeFill, vehicleColor } from "../../lib/tokens"
+import { useTokens, vehicleColorFor } from "../../lib/tokens"
 import type { Selection } from "../../store/ui"
 import type { Instance, VehiclePlan } from "../../types"
 
@@ -26,11 +26,14 @@ export function SelectionCard({
   plans: VehiclePlan[]
   onClose: () => void
 }) {
-  if (!selection) return null
+  const t = useTokens()
+  const { nodeFill } = t
+  const vehicleColor = (i: number) => vehicleColorFor(t, i)
 
   let title = ""
-  let accent = "#93a1bb"
+  let accent = t.text.muted
   const rows: React.ReactNode[] = []
+  if (!selection) return null
 
   if (selection.kind === "node") {
     const node = inst.nodes.find((n) => n.id === selection.id)
@@ -66,9 +69,9 @@ export function SelectionCard({
     title = `Road n${edge.u} – n${edge.v}`
     rows.push(<Line key="tau" k="Travel time τ" v={minutes(edge.tau)} />)
     rows.push(<Line key="cuv" k={`Cost n${edge.u}→n${edge.v}`} v={money(edge.cost)}
-                    tone={edge.cost < 0 ? "#ffc857" : undefined} />)
+                    tone={edge.cost < 0 ? t.status.warn : undefined} />)
     rows.push(<Line key="cvu" k={`Cost n${edge.v}→n${edge.u}`} v={money(edge.cost_vu)}
-                    tone={edge.cost_vu < 0 ? "#ffc857" : undefined} />)
+                    tone={edge.cost_vu < 0 ? t.status.warn : undefined} />)
     if (edge.cost < 0 || edge.cost_vu < 0) {
       rows.push(
         <p key="note" className="pt-1 text-[10px] leading-snug text-warn">

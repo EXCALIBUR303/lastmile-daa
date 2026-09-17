@@ -1,12 +1,15 @@
 import { useEffect, useRef } from "react"
+import { useTokens, type Palette } from "../../lib/tokens"
 
-function heat(v: number | undefined, max: number): string {
-  if (v === undefined) return "#161e2c"          // no entry recorded yet
-  const t = max > 0 ? Math.min(1, v / max) : 0
-  const l = 12 + t * 46
-  const s = 45 + t * 35
-  return `hsl(268 ${s}% ${l}%)`                   // dark panel -> violet, matches the
-}                                                  // "knapsack" stage colour used elsewhere
+function heatFor(p: Palette) {
+  return (v: number | undefined, max: number): string => {
+    if (v === undefined) return p.heat.empty       // no entry recorded yet
+    const t = max > 0 ? Math.min(1, v / max) : 0
+    const l = p.heat.lightFrom + t * (p.heat.lightTo - p.heat.lightFrom)
+    const s = 45 + t * 35
+    return `hsl(${p.heat.dpHue} ${s}% ${l}%)`      // violet, matching the
+  }                                                // "knapsack" stage colour
+}
 
 /** T (time) is always in the hundreds -- unlike ApspMatrix's n x n, there is
  * no small-N case worth a DOM grid here, so this is canvas-only. Redraws
@@ -15,6 +18,7 @@ function heat(v: number | undefined, max: number): string {
 export function DpTable({
   dpRow, dpCells, T, Q, totalOrders,
 }: { dpRow: number; dpCells: Map<string, number>; T: number; Q: number; totalOrders: number }) {
+  const palette = useTokens()
   const ref = useRef<HTMLCanvasElement>(null)
   const width = 320
   const height = Math.max(120, Math.min(320, Math.round((width * (Q + 1)) / (T + 1)) || 160))
@@ -25,6 +29,7 @@ export function DpTable({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    const heat = heatFor(palette)
     let max = 0
     for (const v of dpCells.values()) if (v > max) max = v
 
@@ -35,7 +40,7 @@ export function DpTable({
       ctx.fillStyle = heat(value, max)
       ctx.fillRect(t * cw, canvas.height - (c + 1) * ch, Math.max(1, cw), Math.max(1, ch))
     }
-  }, [dpCells, T, Q])
+  }, [dpCells, T, Q, palette])
 
   if (dpRow < 0 && dpCells.size === 0) {
     return (

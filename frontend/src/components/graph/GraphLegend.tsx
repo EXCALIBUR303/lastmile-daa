@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react"
 import { ChevronDown } from "lucide-react"
-import { edgeStroke, nodeFill, status, text, vehicleColor } from "../../lib/tokens"
+import { useTokens, vehicleColorFor } from "../../lib/tokens"
 import { useUi } from "../../store/ui"
 
 function Dot({ color, ring = false }: { color: string; ring?: boolean }) {
@@ -40,6 +40,9 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 }
 
 export function GraphLegend({ vehicleCount }: { vehicleCount: number }) {
+  const t = useTokens()
+  const { edgeStroke, nodeFill, status, text } = t
+  const vehicleColor = (i: number) => vehicleColorFor(t, i)
   const open = useUi((s) => s.legendOpen)
   const toggle = useUi((s) => s.toggleLegend)
 

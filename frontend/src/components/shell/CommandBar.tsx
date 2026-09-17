@@ -1,6 +1,6 @@
 import {
-  AlertTriangle, CheckCircle2, Loader2, PanelLeftClose, PanelLeftOpen,
-  PanelRightClose, PanelRightOpen, Play, SlidersHorizontal, BarChart3,
+  AlertTriangle, CheckCircle2, Loader2, Moon, PanelLeftClose, PanelLeftOpen,
+  PanelRightClose, PanelRightOpen, Play, SlidersHorizontal, Sun, BarChart3,
 } from "lucide-react"
 import { count } from "../../lib/format"
 import { useUi } from "../../store/ui"
@@ -38,7 +38,8 @@ export function CommandBar({
   onRun: () => void
   layout: "mobile" | "tablet" | "desktop"
 }) {
-  const { leftOpen, rightOpen, toggleLeft, toggleRight, mobilePane, setMobilePane } = useUi()
+  const { leftOpen, rightOpen, toggleLeft, toggleRight, mobilePane, setMobilePane,
+          theme, toggleTheme } = useUi()
   const meta = instance?.meta
 
   // On a phone the words are dropped and the chip keeps only its icon plus the
@@ -116,6 +117,13 @@ export function CommandBar({
 
       <div className="ml-auto flex shrink-0 items-center gap-2">
         {statusChip}
+
+        <IconButton
+          label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+          onClick={toggleTheme}
+        >
+          {theme === "dark" ? <Sun size={15} aria-hidden /> : <Moon size={15} aria-hidden />}
+        </IconButton>
 
         {/* mobile / tablet drawer switches */}
         {layout !== "desktop" && (

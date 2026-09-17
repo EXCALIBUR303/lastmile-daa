@@ -25,6 +25,29 @@
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
+/* Light theme. Not an inversion of the dark palette: saturated neon reads as
+   glare on white, so accents are darkened until each clears AA on the panel
+   surface. Mirrors the `light` palette in src/lib/tokens.ts. */
+:root[data-theme="light"] {
+  --color-canvas:     #eef1f6;
+  --color-panel:      #ffffff;
+  --color-raised:     #f4f7fa;
+  --color-line:       #d8dfe9;
+  --color-lineStrong: #b4bfd0;
+
+  --color-ink:        #0f1722;
+  --color-muted:      #525f76;
+  --color-faint:      #5e6a82;
+
+  --color-accent:     #0b6f94;
+  --color-good:       #0a7350;
+  --color-warn:       #8a5200;
+  --color-bad:        #b3261e;
+  --color-violet:     #6d28d9;
+
+  color-scheme: light;
+}
+
 html, body, #root { height: 100%; }
 
 body {
