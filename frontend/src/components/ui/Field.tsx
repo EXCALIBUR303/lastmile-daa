@@ -34,6 +34,7 @@ export function Segmented<T extends string>({
             type="button"
             role="radio"
             aria-checked={active}
+            disabled={disabled}
             onClick={() => onChange(option)}
             className={`relative w-full min-h-[44px] rounded px-2 py-1.5 text-caption font-medium transition-colors
                         focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
