@@ -261,12 +261,13 @@ export function CanvasStage({
                 <circle cx={x} cy={y} r={h + u(9)} fill="none"
                         stroke={edgeStroke.selected} strokeWidth={u(1.5)} />
               )}
-              {n.kind === "pickup" || n.kind === "junction" ? (
-                <circle cx={x} cy={y} r={h} fill={fill} {...border} />
-              ) : (
-                <rect x={x - h} y={y - h} width={2 * h} height={2 * h}
-                      rx={u(n.kind === "depot" ? 3 : 1.5)} fill={fill} {...border} />
-              )}
+              {/* Every stop is a <rect>; pickups and junctions are fully rounded
+                  ones. A plain <circle> stop glyph went missing in one user's
+                  browser while the squares beside it drew fine, so all stops
+                  share the element that rendered reliably. */}
+              <rect x={x - h} y={y - h} width={2 * h} height={2 * h}
+                    rx={n.kind === "pickup" || n.kind === "junction" ? h : u(n.kind === "depot" ? 3 : 1.5)}
+                    fill={fill} {...border} />
             </motion.g>
           )
         })}

@@ -42,13 +42,15 @@ interface UiStore {
 // Algorithm choices lead, because demonstrating them is the point of the
 // project; the generator knobs below them change far less often per session.
 const DEFAULT_SECTIONS: Record<string, boolean> = {
-  dataset: true,
-  shortestPaths: true,
-  backbone: true,
+  paths: true,
+  zoning: true,
   selection: true,
   sequencing: true,
-  fleet: true,
-  simulation: true,
+  // The instance knobs change least often, so they start folded to a
+  // one-line summary of their current values.
+  network: false,
+  demand: false,
+  playback: true,
 }
 
 const THEME_KEY = "lastmile.theme"

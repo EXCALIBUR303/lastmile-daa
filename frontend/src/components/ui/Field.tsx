@@ -5,7 +5,7 @@ import { Tooltip } from "./Tooltip"
 
 /** Mutually exclusive choice. Rendered as a real radiogroup for assistive tech. */
 export function Segmented<T extends string>({
-  id, options, value, onChange, label, describe, disabled = false, columns,
+  id, options, value, onChange, label, describe, disabled = false, columns, format,
 }: {
   id: string
   options: readonly T[]
@@ -18,12 +18,14 @@ export function Segmented<T extends string>({
   disabled?: boolean
   /** Force a grid instead of a single row when labels are long. */
   columns?: number
+  /** Display text for an option; defaults to the id with underscores as spaces. */
+  format?: (option: T) => string
 }) {
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className={`grid gap-1 rounded-md bg-canvas p-1 ${disabled ? "pointer-events-none opacity-40" : ""}`}
+      className={`grid gap-0.5 rounded-md border border-line bg-raised p-0.5 ${disabled ? "pointer-events-none opacity-40" : ""}`}
       style={{ gridTemplateColumns: `repeat(${columns ?? options.length}, minmax(0, 1fr))` }}
     >
       {options.map((option) => {
@@ -36,19 +38,19 @@ export function Segmented<T extends string>({
             aria-checked={active}
             disabled={disabled}
             onClick={() => onChange(option)}
-            className={`relative w-full min-h-[44px] rounded px-2 py-1.5 text-caption font-medium transition-colors
+            className={`relative w-full min-h-[44px] rounded px-2 py-1 text-caption font-medium transition-colors
                         focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
-                        focus-visible:outline-accent md:min-h-[30px]
-                        ${active ? "text-canvas" : "text-muted hover:text-ink"}`}
+                        focus-visible:outline-accent md:min-h-[28px]
+                        ${active ? "text-accent" : "text-muted hover:text-ink"}`}
           >
             {active && (
               <motion.span
                 layoutId={`seg-${id}`}
                 transition={spring}
-                className="absolute inset-0 rounded bg-accent"
+                className="absolute inset-0 rounded bg-accent/12 ring-1 ring-accent/45"
               />
             )}
-            <span className="relative z-10 block truncate">{option.replace(/_/g, " ")}</span>
+            <span className="relative z-10 block truncate">{format ? format(option) : option.replace(/_/g, " ")}</span>
           </button>
         )
         return describe ? (
@@ -68,7 +70,7 @@ export function Segmented<T extends string>({
  * figure -- seeds and capacities are values people reproduce, not just sweep.
  */
 export function NumberField({
-  label, value, min, max, step = 1, suffix = "", onChange, hint, disabled = false,
+  label, value, min, max, step = 1, suffix = "", onChange, hint, disabled = false, action,
 }: {
   label: string
   value: number
@@ -79,6 +81,8 @@ export function NumberField({
   onChange: (v: number) => void
   hint?: React.ReactNode
   disabled?: boolean
+  /** Small control beside the value box, e.g. a shuffle button for the seed. */
+  action?: React.ReactNode
 }) {
   const id = useId()
   const [draft, setDraft] = useState(String(value))
@@ -112,6 +116,7 @@ export function NumberField({
           </Tooltip>
         )}
         <div className="ml-auto flex items-center gap-1">
+          {action}
           <input
             id={`${id}-num`}
             type="number"

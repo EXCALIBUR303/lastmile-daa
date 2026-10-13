@@ -43,17 +43,19 @@ const dark: Palette = {
 }
 
 // Light is not an inversion: saturated neon reads as glare on white, so the
-// accents are darkened until each clears AA on the panel surface, and the heat
-// ramps run bright->dark instead of dark->bright.
+// accents are deepened until each clears AA on every light surface. Neutrals
+// are a cool slate ramp (canvas -> raised -> panel steps lighter), so panels
+// lift off the workspace by tone rather than heavy borders, and the heat ramps
+// run bright->dark instead of dark->bright.
 const light: Palette = {
-  surface: { canvas: "#eef1f6", panel: "#ffffff", raised: "#f4f7fa", line: "#d8dfe9", lineStrong: "#b4bfd0" },
-  text: { ink: "#0f1722", muted: "#525f76", faint: "#5e6a82" },
-  status: { accent: "#0b6f94", good: "#0a7350", warn: "#8a5200", bad: "#b3261e", violet: "#6d28d9" },
-  vehicles: ["#0b6f94", "#6d28d9", "#0a7350", "#8a5200", "#a81b52"],
+  surface: { canvas: "#f3f5f9", panel: "#ffffff", raised: "#f6f8fb", line: "#e3e8ef", lineStrong: "#c8d1dd" },
+  text: { ink: "#0f172a", muted: "#475569", faint: "#5b677a" },
+  status: { accent: "#1d5fd6", good: "#047857", warn: "#a54b06", bad: "#c02626", violet: "#6d28d9" },
+  vehicles: ["#1d5fd6", "#7c3aed", "#0f8a5f", "#c26100", "#d0246c"],
   series: ["#0072b2", "#b85c00", "#00725a", "#a0467f"],
-  nodeFill: { depot: "#b26a00", pickup: "#3b4659", drop: "#3b4659", junction: "#7a879c" },
-  edgeStroke: { network: "#c3ccda", subsidised: "#b26a00", relaxed: "#0b6f94", mst: "#4b5870", selected: "#0f1722" },
-  heat: { apspHue: 198, dpHue: 268, lightFrom: 92, lightTo: 38, empty: "#eaeef4" },
+  nodeFill: { depot: "#c2560c", pickup: "#334155", drop: "#334155", junction: "#7b8798" },
+  edgeStroke: { network: "#d3dae5", subsidised: "#b8650a", relaxed: "#1d5fd6", mst: "#475569", selected: "#0f172a" },
+  heat: { apspHue: 217, dpHue: 262, lightFrom: 94, lightTo: 40, empty: "#edf1f6" },
 }
 
 export const PALETTES: Record<ThemeName, Palette> = { dark, light }

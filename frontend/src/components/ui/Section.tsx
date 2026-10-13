@@ -23,7 +23,7 @@ export function Section({
   const panelId = `section-${id}`
 
   return (
-    <section className="border-b border-line last:border-b-0">
+    <section className="border-b border-line/70 last:border-b-0">
       <h3>
         <button
           type="button"
@@ -31,20 +31,21 @@ export function Section({
           aria-expanded={open}
           aria-controls={panelId}
           className="group flex min-h-[44px] w-full items-center gap-2 px-4 py-2.5 text-left transition-colors md:min-h-0
-                     hover:bg-raised/60 focus-visible:outline focus-visible:-outline-offset-2
+                     hover:bg-raised/70 focus-visible:outline focus-visible:-outline-offset-2
                      focus-visible:outline-2 focus-visible:outline-accent"
         >
-          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: dur.fast, ease: ease.out }}
-                       className="text-faint group-hover:text-muted">
-            <ChevronRight size={13} aria-hidden />
-          </motion.span>
-          <span className="text-body font-semibold tracking-wide text-ink">{title}</span>
+          <span className="text-body font-semibold text-ink">{title}</span>
           {hint && (
             <Tooltip content={hint}>
               <Info size={12} className="text-faint" aria-hidden />
             </Tooltip>
           )}
-          {badge && <span className="ml-auto">{badge}</span>}
+          {/* Collapsed sections still say what they are set to. */}
+          {badge && !open && <span className="ml-auto min-w-0 truncate text-caption text-faint">{badge}</span>}
+          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: dur.fast, ease: ease.out }}
+                       className={`${badge && !open ? "" : "ml-auto"} shrink-0 text-faint group-hover:text-muted`}>
+            <ChevronRight size={13} aria-hidden />
+          </motion.span>
         </button>
       </h3>
 
@@ -56,7 +57,7 @@ export function Section({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: dur.base, ease: ease.out }}
           >
-            <div className="space-y-3 px-4 pb-4">{children}</div>
+            <div className="space-y-3 px-4 pb-4 pt-0.5">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
