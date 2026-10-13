@@ -6,6 +6,7 @@ import {
 } from "../../lib/geometry"
 import { minutes } from "../../lib/format"
 import { stageColorFor, useTokens } from "../../lib/tokens"
+import { describeSelection, stepSelection } from "../../lib/selectionNav"
 import { useUi } from "../../store/ui"
 import type { ViewState } from "../../trace/reducer"
 import type { Instance, VehiclePlan } from "../../types"
@@ -156,6 +157,18 @@ export function GraphWorkspace({
     if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomBy(ZOOM_STEP) }
     if (e.key === "0") { e.preventDefault(); fit() }
     if (e.key === "Escape") select(null)
+
+    // Step through stops with the arrows and through roads with [ and ].
+    if (inst) {
+      const step = (kind: "node" | "edge", dir: 1 | -1) => {
+        e.preventDefault()
+        select(stepSelection(inst, selection, kind, dir))
+      }
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") step("node", 1)
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") step("node", -1)
+      if (e.key === "]") step("edge", 1)
+      if (e.key === "[") step("edge", -1)
+    }
   }
 
   return (
@@ -164,7 +177,7 @@ export function GraphWorkspace({
       <div
         ref={containerRef}
         role="application"
-        aria-label="Delivery network canvas. Drag to pan, scroll to zoom, plus and minus to zoom, 0 to fit."
+        aria-label="Delivery network canvas. Arrow keys step through stops, left and right square brackets step through roads, plus and minus zoom, 0 fits the network, Escape clears the selection. Drag to pan, scroll to zoom."
         tabIndex={0}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -183,6 +196,11 @@ export function GraphWorkspace({
           />
         )}
       </div>
+
+      {/* Announces what the keyboard just selected; the card below shows it. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {inst ? describeSelection(inst, selection) : ""}
+      </p>
 
       {/* ---- empty / error / busy states */}
       {!inst && !loading && !error && (

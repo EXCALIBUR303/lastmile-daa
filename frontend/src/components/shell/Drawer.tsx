@@ -18,15 +18,37 @@ export function Drawer({
   children: React.ReactNode
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  // The latest onClose without making it an effect dependency: callers pass an
+  // inline arrow, and re-running the effect on every render would yank focus.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => { onCloseRef.current = onClose })
 
-  // Escape closes; focus moves into the sheet so the keyboard follows the eye.
+  // Modal behaviour: focus moves in, Tab cycles inside the sheet, Escape
+  // closes, and focus returns to whatever opened it.
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
-    window.addEventListener("keydown", onKey)
+    const opener = document.activeElement as HTMLElement | null
     ref.current?.focus()
-    return () => window.removeEventListener("keydown", onKey)
-  }, [open, onClose])
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { onCloseRef.current(); return }
+      if (e.key !== "Tab") return
+      const sheet = ref.current
+      if (!sheet) return
+      const focusable = [...sheet.querySelectorAll<HTMLElement>(
+        'a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])',
+      )].filter((n) => n.offsetParent !== null)
+      if (focusable.length === 0) { e.preventDefault(); return }
+      const first = focusable[0], last = focusable[focusable.length - 1]
+      const active = document.activeElement
+      if (e.shiftKey && (active === first || active === sheet)) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus() }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      opener?.focus?.()
+    }
+  }, [open])
 
   const geometry =
     side === "bottom"
@@ -50,7 +72,7 @@ export function Drawer({
             ref={ref}
             tabIndex={-1}
             role="dialog"
-            aria-modal="false"
+            aria-modal="true"
             aria-label={title}
             initial={geometry.axis}
             animate={{ x: 0, y: 0 }}

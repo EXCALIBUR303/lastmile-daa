@@ -33,6 +33,10 @@ export function Tooltip({
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
+      onKeyDown={(e) => {
+        // WCAG 1.4.13: dismissible without moving the pointer or focus.
+        if (e.key === "Escape" && open) { setOpen(false); e.stopPropagation() }
+      }}
     >
       {/* flex-1 so a tooltip-wrapped control still fills the cell it was placed
           in; without it a wrapped segmented option shrinks to its text width. */}

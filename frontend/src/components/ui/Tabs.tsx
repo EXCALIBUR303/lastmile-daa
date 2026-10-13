@@ -26,7 +26,7 @@ export function Tabs<T extends string>({
 }) {
   return (
     <div role="tablist" aria-label={label} className="flex border-b border-line">
-      {tabs.map((tab) => {
+      {tabs.map((tab, index) => {
         const active = tab.id === value
         return (
           <button
@@ -39,9 +39,18 @@ export function Tabs<T extends string>({
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => {
-              const i = tabs.findIndex((t) => t.id === value)
-              if (e.key === "ArrowRight") onChange(tabs[(i + 1) % tabs.length].id)
-              if (e.key === "ArrowLeft") onChange(tabs[(i - 1 + tabs.length) % tabs.length].id)
+              // Roving tabindex: arrows (and Home/End) select AND focus the
+              // target, so the focus ring never lags behind the selection.
+              const to = e.key === "ArrowRight" ? index + 1
+                : e.key === "ArrowLeft" ? index - 1
+                : e.key === "Home" ? 0
+                : e.key === "End" ? tabs.length - 1
+                : null
+              if (to === null) return
+              e.preventDefault()
+              const next = tabs[(to + tabs.length) % tabs.length]
+              onChange(next.id)
+              document.getElementById(`tab-${next.id}`)?.focus()
             }}
             className={`relative flex min-h-[44px] flex-1 items-center justify-center gap-1.5 px-2 text-body
                         md:min-h-[36px]
