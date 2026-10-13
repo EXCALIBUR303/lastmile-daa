@@ -5,6 +5,7 @@ import { SimulationControls } from "./components/controls/SimulationControls"
 import { GraphWorkspace } from "./components/graph/GraphWorkspace"
 import { collectAlerts } from "./lib/alerts"
 import { ResultsInspector } from "./components/results/ResultsInspector"
+import { ResultsState } from "./components/results/ResultsState"
 import { CommandBar } from "./components/shell/CommandBar"
 import { Drawer } from "./components/shell/Drawer"
 import { useLayoutMode } from "./lib/useMediaQuery"
@@ -55,13 +56,16 @@ export default function App() {
                       disabled={loading} onRun={runSolve} />
   )
 
+  // While a re-run is in flight the previous result stays visible (dimmed)
+  // rather than collapsing to a placeholder; the placeholder is for when there
+  // is nothing to show.
   const results = data ? (
-    <ResultsInspector data={data} view={view} capacity={gen.capacity}
-                      horizon={gen.horizon} ordersRequested={gen.n_orders} />
+    <div aria-busy={loading} className={`flex min-h-0 flex-1 flex-col transition-opacity ${loading ? "opacity-60" : ""}`}>
+      <ResultsInspector data={data} view={view} capacity={gen.capacity}
+                        horizon={gen.horizon} ordersRequested={gen.n_orders} />
+    </div>
   ) : (
-    <p className="p-4 text-caption text-muted">
-      {loading ? "Solving…" : "No results yet. Choose Run to solve an instance."}
-    </p>
+    <ResultsState loading={loading} error={error} onRun={runSolve} />
   )
 
   return (
@@ -97,6 +101,7 @@ export default function App() {
               showRoutes={cursor > 0}
               loading={loading}
               error={error}
+              onRun={runSolve}
               stage={stage}
               stepLabel={`${cursor.toLocaleString()}/${total.toLocaleString()}`}
             />

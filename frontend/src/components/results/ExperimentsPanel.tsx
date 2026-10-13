@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2, Play, RotateCw } from "lucide-react"
+import { Loader2, Play, RotateCw } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer,
@@ -9,6 +9,8 @@ import { moneyShort, ms } from "../../lib/format"
 import { useTokens, type Palette } from "../../lib/tokens"
 import type { BenchExperiment, BenchRow } from "../../types"
 import { Segmented } from "../ui/Field"
+import { LoadingHint } from "../ui/LoadingHint"
+import { Notice } from "../ui/Notice"
 
 const EXPERIMENTS: readonly BenchExperiment[] = [
   "apsp_crossover", "size", "capacity", "selector_quality", "zoning_quality",
@@ -359,11 +361,6 @@ function DataTable({ spec }: { spec: ChartSpec }) {
 
 /** Same footprint as the finished chart, so nothing jumps when it arrives. */
 function ChartSkeleton() {
-  const [slow, setSlow] = useState(false)
-  useEffect(() => {
-    const id = setTimeout(() => setSlow(true), 4000)
-    return () => clearTimeout(id)
-  }, [])
   return (
     <div role="status" className="space-y-2">
       <div className="flex items-center justify-center gap-2 rounded border border-line bg-raised motion-safe:animate-pulse"
@@ -371,38 +368,7 @@ function ChartSkeleton() {
         <Loader2 size={14} className="animate-spin text-accent" aria-hidden />
         <span className="text-caption text-muted">Running sweep…</span>
       </div>
-      {slow && (
-        <p className="text-caption text-faint">
-          Taking longer than usual. The server may be starting up; the sweep will still finish.
-        </p>
-      )}
-    </div>
-  )
-}
-
-function Notice({
-  tone, title, children, action, onAction,
-}: {
-  tone: "bad" | "neutral"; title: string; children: React.ReactNode; action: string; onAction: () => void
-}) {
-  return (
-    <div role={tone === "bad" ? "alert" : "status"}
-         className={`rounded border px-3 py-3 ${tone === "bad" ? "border-bad/40 bg-bad/10" : "border-line bg-raised"}`}>
-      <div className={`flex items-center gap-2 text-body font-semibold ${tone === "bad" ? "text-bad" : "text-ink"}`}>
-        <AlertTriangle size={14} aria-hidden />
-        {title}
-      </div>
-      <p className="mt-1 text-caption leading-snug text-muted">{children}</p>
-      <button
-        type="button"
-        onClick={onAction}
-        className="mt-2.5 flex min-h-[44px] items-center gap-1.5 rounded border border-line bg-panel px-3 text-caption
-                   font-medium text-ink transition-colors hover:border-accent hover:text-accent md:min-h-[32px]
-                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      >
-        <RotateCw size={12} aria-hidden />
-        {action}
-      </button>
+      <LoadingHint>Taking longer than usual. The server may be starting up; the sweep will still finish.</LoadingHint>
     </div>
   )
 }

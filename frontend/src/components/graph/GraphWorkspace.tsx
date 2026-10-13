@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react"
-import { AlertTriangle, Crosshair, Loader2, Maximize2, Minus, Plus, Tag, TagsIcon } from "lucide-react"
+import { Crosshair, Loader2, Maximize2, Minus, Play, Plus, Tag, TagsIcon } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   clampZoom, clientToUnits, expandToAspect, fitViewBox, pixelsToUnits, zoomAt, type ViewBox,
@@ -10,6 +10,8 @@ import { useUi } from "../../store/ui"
 import type { ViewState } from "../../trace/reducer"
 import type { Instance, VehiclePlan } from "../../types"
 import { IconButton } from "../ui/Field"
+import { LoadingHint } from "../ui/LoadingHint"
+import { Notice } from "../ui/Notice"
 import { CanvasStage } from "./CanvasStage"
 import { GraphLegend } from "./GraphLegend"
 import { SelectionCard } from "./SelectionCard"
@@ -23,7 +25,7 @@ const DRAG_THRESHOLD_PX = 4
 const LABEL_AUTO_LIMIT = 70
 
 export function GraphWorkspace({
-  inst, plans, view, showRoutes, loading, error, stage, stepLabel,
+  inst, plans, view, showRoutes, loading, error, onRun, stage, stepLabel,
 }: {
   inst: Instance | null
   plans: VehiclePlan[]
@@ -31,6 +33,7 @@ export function GraphWorkspace({
   showRoutes: boolean
   loading: boolean
   error: string | null
+  onRun: () => void
   stage: string | null
   stepLabel: string
 }) {
@@ -189,33 +192,47 @@ export function GraphWorkspace({
           <p className="max-w-[260px] text-caption text-faint">
             Set the dataset parameters, then choose Run to generate a network and solve it.
           </p>
+          <button
+            type="button"
+            onClick={onRun}
+            className="pointer-events-auto mt-1 flex min-h-[44px] items-center gap-1.5 rounded bg-accent px-3 text-body
+                       font-semibold text-canvas transition-opacity hover:opacity-90 md:min-h-[32px]
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <Play size={13} aria-hidden /> Run
+          </button>
         </div>
       )}
 
       {error && (
         <div className="absolute inset-0 flex items-center justify-center p-6">
-          <div role="alert" className="max-w-[340px] rounded-md border border-bad/40 bg-bad/10 p-4">
-            <div className="mb-1.5 flex items-center gap-2 text-bad">
-              <AlertTriangle size={15} aria-hidden />
-              <span className="text-body font-semibold">Solve failed</span>
-            </div>
-            <p className="text-caption leading-relaxed text-muted">{error}</p>
-            <p className="mt-2 text-caption text-faint">
-              The last successful result is no longer shown. Adjust the parameters and run again.
-            </p>
+          <div className="w-full max-w-[340px]">
+            <Notice tone="bad" title="Solve failed" action="Try again" onAction={onRun}>
+              <p>{error}</p>
+              <p className="mt-1 text-faint">
+                The last successful result is no longer shown. Adjust the parameters if needed, then try again.
+              </p>
+            </Notice>
           </div>
         </div>
       )}
 
+      {/* Visual only: the header chip is the live region that announces
+          "Solving", so this pill stays out of the accessibility tree. */}
       <AnimatePresence>
         {loading && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-canvas/55 backdrop-blur-[1px]"
+            transition={{ duration: 0.15 }}
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-14 flex flex-col items-center gap-2 px-6"
           >
             <div className="flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-2">
               <Loader2 size={14} className="animate-spin text-accent" aria-hidden />
-              <span className="text-body text-ink" role="status">Solving…</span>
+              <span className="text-body text-ink">Solving…</span>
+            </div>
+            <div className="max-w-[300px] text-center">
+              <LoadingHint>Taking longer than usual. The server may be starting up.</LoadingHint>
             </div>
           </motion.div>
         )}
