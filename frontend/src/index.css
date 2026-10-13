@@ -31,6 +31,8 @@
   --text-title--line-height: 1.3;
   --text-display: 17px;
   --text-display--line-height: 1.2;
+  --text-hero: 24px;
+  --text-hero--line-height: 1.1;
 
   /* Elevation: borders carry the density, one shadow lifts overlays. */
   --shadow-pop: 0 8px 24px var(--shadow-color);
@@ -73,6 +75,7 @@
     --text-body: 13px;
     --text-title: 14px;
     --text-display: 18px;
+    --text-hero: 26px;
   }
 }
 

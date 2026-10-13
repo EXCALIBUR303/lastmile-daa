@@ -85,9 +85,10 @@ export function CommandBar({
         <p className="mono truncate text-caption leading-tight text-faint">DAA · Group 7 · Topic 2</p>
       </div>
 
-      {/* ---- pipeline, desktop only: it is orientation, not a control */}
+      {/* ---- pipeline, wide desktop only: it is orientation, not a control, so it
+           yields its room to the dataset numbers on narrower screens */}
       {layout === "desktop" && (
-        <ol className="flex shrink-0 items-center gap-1.5 rounded border border-line bg-raised px-2 py-1"
+        <ol className="hidden shrink-0 items-center gap-1.5 rounded border border-line bg-raised px-2 py-1 2xl:flex"
             aria-label="Solver pipeline">
           {PIPELINE.map((s, i) => (
             <li key={s} className="flex items-center gap-1.5">

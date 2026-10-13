@@ -16,8 +16,22 @@ const TONE_CLASS: Record<Tone, string> = {
  * secondary cue only -- every value that can be "bad" also carries a word or
  * a comparison in its sub-line.
  */
+type Tier = "hero" | "lead" | "detail"
+const VALUE_SIZE: Record<Tier, string> = {
+  hero: "text-hero font-bold",
+  lead: "text-display font-semibold",
+  detail: "text-title font-medium",
+}
+
+/**
+ * One KPI as an aligned label/value pair rather than a card. Three tiers set
+ * the reading order: the headline result is large, the two supporting results
+ * are mid-size, the remaining figures are compact. Colour is a secondary cue
+ * only -- every value that can be "bad" also carries a word or a comparison
+ * in its sub-line.
+ */
 function Kpi({
-  label, unit, value, tone = "ink", sub, hint, wide = false,
+  label, unit, value, tone = "ink", sub, hint, tier = "detail", wide = false,
 }: {
   label: string
   unit?: string
@@ -25,6 +39,7 @@ function Kpi({
   tone?: Tone
   sub?: React.ReactNode
   hint?: React.ReactNode
+  tier?: Tier
   wide?: boolean
 }) {
   return (
@@ -39,7 +54,7 @@ function Kpi({
         initial={{ opacity: 0, y: -3 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: dur.fast, ease: ease.out }}
-        className={`mono text-display font-semibold leading-tight ${TONE_CLASS[tone]}`}
+        className={`mono leading-tight ${VALUE_SIZE[tier]} ${TONE_CLASS[tone]}`}
       >
         {value}
       </motion.div>
@@ -63,34 +78,41 @@ export function SummaryPanel({
 
   return (
     <div className="space-y-4">
-      <section aria-label="Key results">
+      <section aria-label="Key results" className="space-y-1">
+        <Kpi
+          tier="hero" wide
+          label="Net profit" unit="units" value={money(metrics.net_profit)} tone={netTone}
+          sub={metrics.net_profit >= 0 ? "profit exceeds cost" : "cost exceeds profit"}
+          hint="Gross profit minus total cost. Routing optimises travel time, not this figure, so it can be negative on subsidy-heavy instances."
+        />
         <div className="grid grid-cols-2 gap-x-4">
           <Kpi
-            label="Gross profit" unit="units" value={money(metrics.total_profit)} tone="good"
-            sub={`from ${count(metrics.orders_served)} delivered orders`}
-            hint="Sum of the profit of every order actually delivered on this plan."
-          />
-          <Kpi
-            label="Total cost" unit="units" value={money(metrics.total_cost)}
-            sub="travel cost across all routes"
-            hint="Monetary cost of the roads driven. Separate from travel time — subsidised roads can cost less than they take."
-          />
-          <Kpi
-            label="Net profit" unit="units" value={money(metrics.net_profit)} tone={netTone}
-            sub={metrics.net_profit >= 0 ? "profit exceeds cost" : "cost exceeds profit"}
-            hint="Gross profit minus total cost. Routing optimises travel time, not this figure, so it can be negative on subsidy-heavy instances."
-          />
-          <Kpi
+            tier="lead"
             label="Orders served" value={`${count(metrics.orders_served)} / ${count(ordersTotal)}`}
             sub={`${percent(servedPct)} of demand accepted`}
             hint="Orders the selection stage committed to and the simulation actually completed."
           />
           <Kpi
+            tier="lead"
             label="On time" unit="%" value={percent(metrics.on_time_pct)} tone={onTimeTone}
             sub={metrics.on_time_pct === 100
               ? "no deadline misses remain"
               : `${count(Math.round((100 - metrics.on_time_pct) / 100 * metrics.orders_served))} late`}
             hint="Share of delivered orders that met their deadline. The repair loop drops offenders before returning, so a healthy run reads 100%."
+          />
+        </div>
+
+        <h4 className="pt-3 text-caption font-semibold text-muted">Breakdown</h4>
+        <div className="grid grid-cols-2 gap-x-4">
+          <Kpi
+            label="Gross profit" unit="units" value={money(metrics.total_profit)}
+            sub={`from ${count(metrics.orders_served)} delivered orders`}
+            hint="Sum of the profit of every order actually delivered on this plan."
+          />
+          <Kpi
+            label="Total cost" unit="units" value={money(metrics.total_cost)}
+            sub="travel cost, all routes"
+            hint="Monetary cost of the roads driven. Separate from travel time — subsidised roads can cost less than they take."
           />
           <Kpi
             label="Travel time" unit="min" value={minutes(metrics.total_travel_time)}
@@ -108,19 +130,20 @@ export function SummaryPanel({
             hint="Wall-clock time for the whole pipeline: metric closure, zoning, selection, sequencing, simulation and repair."
           />
           <Kpi
-            wide
             label="DP upper bound" unit="units"
             value={metrics.dp_bound != null ? money(metrics.dp_bound) : "—"}
             sub={metrics.bound_gap_pct != null
-              ? `achieved plan is ${percent(metrics.bound_gap_pct)} below this ceiling`
-              : "no bound computed for this selector"}
+              ? `plan is ${percent(metrics.bound_gap_pct)} below this ceiling`
+              : "no bound for this selector"}
             hint="LP/fractional relaxation of the selection problem: no feasible plan can beat it. The gap is how much of that ceiling this plan captured."
           />
         </div>
       </section>
 
       <section aria-label="Alerts and feasibility">
-        <h4 className="mb-1.5 text-caption font-semibold text-muted">Alerts &amp; feasibility</h4>
+        <h4 className="mb-1.5 text-caption font-semibold text-muted">
+          Alerts &amp; feasibility{alerts.length > 0 && ` (${alerts.length})`}
+        </h4>
         <AlertList alerts={alerts} />
       </section>
     </div>

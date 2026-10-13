@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle2, ChevronRight, Info, XCircle } from "lucide-react"
 import type { Alert } from "../../lib/alerts"
 
 const ICON = { info: Info, warn: AlertTriangle, error: XCircle } as const
@@ -24,15 +24,20 @@ export function AlertList({ alerts }: { alerts: Alert[] }) {
     <ul className="space-y-1.5">
       {alerts.map((a) => {
         const Icon = ICON[a.severity]
+        // Errors open by default; the rest are one line until asked for, so
+        // three paragraphs of explanation never push the numbers off screen.
         return (
-          <li key={a.id} className={`rounded border px-2.5 py-2 ${TONE[a.severity]}`}>
-            <div className="flex items-start gap-2">
-              <Icon size={13} className="mt-0.5 shrink-0" aria-hidden />
-              <div className="min-w-0">
-                <p className="text-caption font-semibold">{a.title}</p>
-                <p className="mt-0.5 text-caption leading-relaxed text-muted">{a.detail}</p>
-              </div>
-            </div>
+          <li key={a.id}>
+            <details open={a.severity === "error"} className={`group rounded border ${TONE[a.severity]}`}>
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-start gap-2 px-2.5 py-2 md:min-h-0
+                                  focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
+                                  focus-visible:outline-accent">
+                <Icon size={13} className="mt-0.5 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 text-caption font-semibold">{a.title}</span>
+                <ChevronRight size={12} className="mt-0.5 shrink-0 transition-transform group-open:rotate-90" aria-hidden />
+              </summary>
+              <p className="px-2.5 pb-2 pl-[30px] text-caption leading-relaxed text-muted">{a.detail}</p>
+            </details>
           </li>
         )
       })}
