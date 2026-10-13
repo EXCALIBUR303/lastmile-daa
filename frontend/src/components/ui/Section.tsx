@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react"
 import { ChevronRight, Info } from "lucide-react"
+import { dur, ease } from "../../motion/presets"
 import { useUi } from "../../store/ui"
 import { Tooltip } from "./Tooltip"
 
@@ -33,7 +34,7 @@ export function Section({
                      hover:bg-raised/60 focus-visible:outline focus-visible:-outline-offset-2
                      focus-visible:outline-2 focus-visible:outline-accent"
         >
-          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.18 }}
+          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: dur.fast, ease: ease.out }}
                        className="text-faint group-hover:text-muted">
             <ChevronRight size={13} aria-hidden />
           </motion.span>
@@ -51,11 +52,9 @@ export function Section({
         {open && (
           <motion.div
             id={panelId}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: dur.base, ease: ease.out }}
           >
             <div className="space-y-3 px-4 pb-4">{children}</div>
           </motion.div>

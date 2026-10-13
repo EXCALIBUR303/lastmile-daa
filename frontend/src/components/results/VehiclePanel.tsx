@@ -3,6 +3,7 @@ import { ChevronRight, Crosshair } from "lucide-react"
 import { useState } from "react"
 import { count, minutes, money, signedPercent } from "../../lib/format"
 import { useTokens, vehicleColorFor } from "../../lib/tokens"
+import { dur, ease } from "../../motion/presets"
 import { useUi } from "../../store/ui"
 import type { Order, VehiclePlan } from "../../types"
 import { Tooltip } from "../ui/Tooltip"
@@ -45,7 +46,7 @@ function VehicleRow({
                      focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2
                      focus-visible:outline-accent"
         >
-          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.18 }}
+          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: dur.fast, ease: ease.out }}
                        className="shrink-0 text-faint">
             <ChevronRight size={12} aria-hidden />
           </motion.span>
@@ -83,11 +84,11 @@ function VehicleRow({
         <div className="flex items-center gap-2">
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-line">
             <motion.div
-              className="h-full rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${loadPct}%` }}
-              transition={{ type: "spring", stiffness: 260, damping: 30 }}
-              style={{ background: color }}
+              className="h-full w-full rounded-full"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: Math.min(1, Math.max(0, loadPct / 100)) }}
+              transition={{ duration: dur.slow, ease: ease.out }}
+              style={{ background: color, originX: 0 }}
             />
           </div>
           <span className="mono shrink-0 text-caption text-faint">
@@ -100,11 +101,9 @@ function VehicleRow({
         {open && (
           <motion.div
             id={panelId}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: dur.fast, ease: ease.out }}
           >
             <div className="space-y-2.5 border-t border-line px-2.5 py-2.5">
               <div className="grid grid-cols-3 gap-2">

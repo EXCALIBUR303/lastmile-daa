@@ -80,11 +80,3 @@ export function stageColorFor(p: Palette, stage: string): string {
   }
   return map[stage] ?? p.text.muted
 }
-
-// ---- Static dark-palette aliases, kept for non-themed callers (motion
-// keyframe filters, which are baked once at module load). ----
-export const surface = dark.surface
-export const text = dark.text
-export const status = dark.status
-export const VEHICLE_COLORS = dark.vehicles
-export const vehicleColor = (i: number) => dark.vehicles[i % dark.vehicles.length]

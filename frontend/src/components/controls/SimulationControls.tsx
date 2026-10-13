@@ -81,7 +81,7 @@ export function SimulationControls({ compact = false }: { compact?: boolean }) {
         </div>
         {timeline}
         <div className="mt-1 h-0.5 overflow-hidden rounded-full bg-line" aria-hidden>
-          <div className="h-full rounded-full bg-accent/60" style={{ width: `${pct}%` }} />
+          <div className="h-full w-full origin-left rounded-full bg-accent/60" style={{ transform: `scaleX(${Math.min(1, Math.max(0, pct / 100))})` }} />
         </div>
       </div>
 

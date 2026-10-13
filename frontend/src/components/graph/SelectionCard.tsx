@@ -2,6 +2,7 @@ import { motion } from "motion/react"
 import { X } from "lucide-react"
 import { minutes, money } from "../../lib/format"
 import { useTokens, vehicleColorFor } from "../../lib/tokens"
+import { dur, ease } from "../../motion/presets"
 import type { Selection } from "../../store/ui"
 import type { Instance, VehiclePlan } from "../../types"
 
@@ -85,8 +86,8 @@ export function SelectionCard({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.18 }}
+      exit={{ opacity: 0, y: 8, transition: { duration: dur.fast, ease: ease.in } }}
+      transition={{ duration: dur.base, ease: ease.out }}
       role="region"
       aria-label="Selection details"
       className="pointer-events-auto w-[222px] rounded-md border border-line bg-panel/95 p-3 backdrop-blur-sm"

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react"
 import { ChevronDown } from "lucide-react"
 import { useTokens, vehicleColorFor } from "../../lib/tokens"
+import { dur, ease } from "../../motion/presets"
 import { useUi } from "../../store/ui"
 
 function Dot({ color, ring = false }: { color: string; ring?: boolean }) {
@@ -57,7 +58,7 @@ export function GraphLegend({ vehicleCount }: { vehicleCount: number }) {
                    focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2
                    focus-visible:outline-accent"
       >
-        <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: 0.18 }} className="text-faint">
+        <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: dur.fast, ease: ease.out }} className="text-faint">
           <ChevronDown size={12} aria-hidden />
         </motion.span>
         Legend
@@ -67,11 +68,9 @@ export function GraphLegend({ vehicleCount }: { vehicleCount: number }) {
         {open && (
           <motion.div
             id="graph-legend"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: dur.fast, ease: ease.out }}
           >
             <div className="grid grid-cols-2 gap-x-3 gap-y-2 px-2.5 pb-2.5">
               <Group title="Stops">

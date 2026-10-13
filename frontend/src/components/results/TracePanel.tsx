@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react"
 import { stageColorFor, useTokens } from "../../lib/tokens"
-import { spring } from "../../motion/presets"
+import { dur, ease } from "../../motion/presets"
 import type { ViewState } from "../../trace/reducer"
 
 const VISIBLE = 18
@@ -32,11 +32,10 @@ export function TracePanel({ view, total }: { view: ViewState; total: number }) 
         {recent.map((e, i) => (
           <motion.li
             key={`${view.log.length - i}-${e.stage}-${e.kind}`}
-            layout
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: i === 0 ? 1 : Math.max(0.35, 0.8 - i * 0.03), x: 0 }}
-            exit={{ opacity: 0 }}
-            transition={spring}
+            exit={{ opacity: 0, transition: { duration: dur.fast, ease: ease.in } }}
+            transition={{ duration: dur.base, ease: ease.out }}
             className={`flex gap-2 rounded px-2 py-1 text-caption ${i === 0 ? "bg-raised" : ""}`}
           >
             <span

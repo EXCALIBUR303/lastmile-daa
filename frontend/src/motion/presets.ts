@@ -1,13 +1,20 @@
 import type { Variants } from "motion/react"
-import { status } from "../lib/tokens"
+
+// One vocabulary for every animation in the app. Motion is the only engine;
+// everything it drives is transform or opacity (compositor-only), and
+// <MotionConfig reducedMotion="user"> in App.tsx strips the transforms for
+// people who ask for less motion.
+
+/** Seconds. Feedback is quick, state changes a little slower, never past 300 ms. */
+export const dur = { fast: 0.15, base: 0.2, slow: 0.3 } as const
+
+/** Entrances ease out (fast start, soft landing); exits ease in and run shorter. */
+export const ease = {
+  out: [0.22, 1, 0.36, 1],
+  in: [0.4, 0, 1, 1],
+} as const
 
 export const spring = { type: "spring", stiffness: 420, damping: 32, mass: 0.8 } as const
-export const softSpring = { type: "spring", stiffness: 180, damping: 24 } as const
-export const easeOutExpo = [0.22, 1, 0.36, 1] as const
-
-// Route/series colours live in lib/tokens.ts; re-exported here so existing
-// motion-side imports keep working without a second palette definition.
-export { VEHICLE_COLORS, vehicleColor } from "../lib/tokens"
 
 // Named explicitly rather than derived via `keyof typeof nodeVariants`:
 // Variants carries a string index signature, and TypeScript's `keyof` on an
@@ -20,12 +27,15 @@ export type NodeVariantName = "idle" | "frontier" | "settled" | "active" | "viol
 // types reject. This only surfaced under `tsc -b`'s stricter composite build
 // (a real production-build blocker), never under plain `tsc --noEmit`.
 export const nodeVariants: Record<NodeVariantName, Variants[string]> = {
-  idle:     { scale: 1,    filter: "drop-shadow(0 0 0px transparent)" },
-  frontier: { scale: 1.22, filter: `drop-shadow(0 0 9px ${status.accent})` },
-  settled:  { scale: 1.08, filter: `drop-shadow(0 0 4px ${status.good})` },
-  active:   { scale: 1.35, filter: `drop-shadow(0 0 12px ${status.warn})` },
-  violated: {
-    scale: 1.15, filter: `drop-shadow(0 0 12px ${status.bad})`,
-    x: [0, -3, 3, -2, 2, 0], transition: { x: { duration: 0.32 } },
-  },
+  idle:     { scale: 1 },
+  frontier: { scale: 1.22 },
+  settled:  { scale: 1.08 },
+  active:   { scale: 1.35 },
+  violated: { scale: 1.15, x: [0, -3, 3, -2, 2, 0], transition: { x: { duration: 0.32 } } },
+}
+
+/** Opacity of the coloured halo behind a node in each state. Replaces the old
+ *  blurred drop-shadow filter, which repainted every node on every change. */
+export const HALO_OPACITY: Record<NodeVariantName, number> = {
+  idle: 0, frontier: 0.35, settled: 0.25, active: 0.4, violated: 0.4,
 }

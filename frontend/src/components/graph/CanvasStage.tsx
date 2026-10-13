@@ -1,9 +1,10 @@
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useMemo } from "react"
-import { easeOutExpo, nodeVariants, spring } from "../../motion/presets"
+import { dur, ease, HALO_OPACITY, nodeVariants, spring } from "../../motion/presets"
 import type { NodeVariantName } from "../../motion/presets"
 import { useTokens, vehicleColorFor } from "../../lib/tokens"
 import { viewBoxString, type ViewBox } from "../../lib/geometry"
+import { usePlayback } from "../../store/playback"
 import type { Selection } from "../../store/ui"
 import type { ViewState } from "../../trace/reducer"
 import type { Instance, VehiclePlan } from "../../types"
@@ -31,6 +32,16 @@ export function CanvasStage({
   const t = useTokens()
   const { edgeStroke, nodeFill } = t
   const vehicleColor = (i: number) => vehicleColorFor(t, i)
+
+  // The vehicle ring only breathes while the simulation is actually playing,
+  // and never for someone who asked for reduced motion.
+  const playing = usePlayback((s) => s.playing)
+  const reduceMotion = useReducedMotion()
+  const pulse = playing && !reduceMotion
+  const halo: Record<NodeVariantName, string> = {
+    idle: t.status.accent, frontier: t.status.accent, settled: t.status.good,
+    active: t.status.warn, violated: t.status.bad,
+  }
 
   const pos = useMemo(() => {
     const m = new Map<number, [number, number]>()
@@ -107,7 +118,7 @@ export function CanvasStage({
               strokeDasharray={subsidised && !relaxed && !chosen ? `${u(5)} ${u(5)}` : undefined}
               initial={false}
               animate={{ opacity: chosen ? 1 : relaxed ? 1 : subsidised ? 0.75 : 0.55 }}
-              transition={{ duration: 0.28, ease: easeOutExpo }}
+              transition={{ duration: dur.base, ease: ease.out }}
               style={{ cursor: "pointer" }}
               onClick={(ev) => { ev.stopPropagation(); onSelect({ kind: "edge", u: e.u, v: e.v }) }}
             />
@@ -146,7 +157,7 @@ export function CanvasStage({
               stroke={edgeStroke.mst} strokeWidth={u(2.2)}
               strokeDasharray={`${u(2)} ${u(6)}`} strokeLinecap="round"
               initial={{ opacity: 0 }} animate={{ opacity: 0.85 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: easeOutExpo }}
+              transition={{ duration: dur.slow, ease: ease.out }}
             />
           )
         })}
@@ -164,15 +175,11 @@ export function CanvasStage({
               stroke={vehicleColor(p.vehicle_id)}
               strokeWidth={u(focusedVehicle === p.vehicle_id ? 3.4 : 2.4)}
               strokeLinejoin="round" strokeLinecap="round"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{
-                pathLength: 1,
-                opacity: dimmed ? 0.12 : p.feasible ? 0.9 : 0.5,
-              }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: dimmed ? 0.12 : p.feasible ? 0.9 : 0.5 }}
+              exit={{ opacity: 0, transition: { duration: dur.fast, ease: ease.in } }}
               strokeDasharray={p.feasible ? undefined : `${u(8)} ${u(6)}`}
-              transition={{ pathLength: { duration: 0.9, ease: easeOutExpo },
-                            opacity: { duration: 0.25 } }}
+              transition={{ duration: dur.slow, ease: ease.out }}
             />
           )
         })}
@@ -189,6 +196,12 @@ export function CanvasStage({
             <motion.g key={n.id} style={{ originX: `${x}px`, originY: `${y}px`, cursor: "pointer" }}
                       variants={nodeVariants} animate={state} transition={spring}
                       onClick={(ev) => { ev.stopPropagation(); onSelect({ kind: "node", id: n.id }) }}>
+              <motion.circle
+                cx={x} cy={y} r={r * 1.8} fill={halo[state]}
+                initial={false} animate={{ opacity: HALO_OPACITY[state] }}
+                transition={{ duration: dur.base, ease: ease.out }}
+                style={{ pointerEvents: "none" }}
+              />
               {chosen && (
                 <circle cx={x} cy={y} r={r * 1.9} fill="none"
                         stroke={edgeStroke.selected} strokeWidth={u(1.5)} opacity={0.9} />
@@ -219,15 +232,15 @@ export function CanvasStage({
                       animate={{ x: p[0], y: p[1], opacity: dimmed ? 0.15 : 1 }}
                       initial={false} transition={spring}
                       style={{ pointerEvents: "none" }}>
-              {/* `initial` must state r explicitly. With only a static r prop
-                  plus an animated r keyframe, Motion has no resolved starting
-                  value on the first frame and writes r="undefined", which the
-                  SVG parser rejects ("Expected length"). */}
+              {/* Ring size is a static attribute; only transform and opacity move,
+                  so there is no resolved-start-value problem as with animated r. */}
               <motion.circle
-                fill="none" stroke={vehicleColor(vid)} strokeWidth={u(2)}
-                initial={{ r: u(14), opacity: 0.9 }}
-                animate={{ opacity: [0.9, 0.25, 0.9], r: [u(14), u(20), u(14)] }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} />
+                r={u(14)} fill="none" stroke={vehicleColor(vid)} strokeWidth={u(2)}
+                initial={false}
+                animate={pulse ? { scale: [1, 1.43, 1], opacity: [0.9, 0.25, 0.9] } : { scale: 1, opacity: 0.6 }}
+                transition={pulse
+                  ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" }
+                  : { duration: dur.base, ease: ease.out }} />
               <circle r={u(5.5)} fill={vehicleColor(vid)} stroke={t.surface.canvas} strokeWidth={u(2)} />
             </motion.g>
           )

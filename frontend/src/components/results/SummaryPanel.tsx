@@ -1,6 +1,6 @@
 import { motion } from "motion/react"
 import { count, minutes, money, ms, percent, ratioPercent } from "../../lib/format"
-import { spring } from "../../motion/presets"
+import { dur, ease } from "../../motion/presets"
 import type { Metrics, VehiclePlan } from "../../types"
 import { Hint } from "../ui/Tooltip"
 import { collectAlerts } from "../../lib/alerts"
@@ -38,7 +38,7 @@ function Kpi({
         key={value}
         initial={{ opacity: 0, y: -3 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={spring}
+        transition={{ duration: dur.fast, ease: ease.out }}
         className={`mono text-display font-semibold leading-tight ${TONE_CLASS[tone]}`}
       >
         {value}

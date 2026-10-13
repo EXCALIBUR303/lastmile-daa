@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useRef } from "react"
-import { motion } from "motion/react"
 import { minutes } from "../../lib/format"
 import { useTokens, type Palette } from "../../lib/tokens"
 import type { ApspMatrixData } from "../../types"
@@ -103,13 +102,13 @@ function DomGrid({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
                 const v = apsp.matrix[i][j]
                 const onBand = i === k || j === k
                 return (
-                  <motion.div
+                  <div
                     key={`c${i}-${j}`}
-                    initial={false}
-                    animate={{ outline: onBand ? `1px solid ${palette.status.warn}` : "1px solid transparent" }}
-                    transition={{ duration: 0.2 }}
                     title={`n${apsp.node_ids[i]} → n${apsp.node_ids[j]} = ${v === null ? "unreachable" : minutes(v)}`}
-                    style={{ height: cellPx, background: heat(v, min, max) }}
+                    style={{
+                      height: cellPx, background: heat(v, min, max),
+                      outline: onBand ? `1px solid ${palette.status.warn}` : undefined,
+                    }}
                   />
                 )
               })}

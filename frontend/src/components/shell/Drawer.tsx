@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react"
 import { X } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { dur, ease } from "../../motion/presets"
 
 /**
  * Slide-over used for the control and result inspectors below the desktop
@@ -39,8 +40,8 @@ export function Drawer({
       {open && (
         <>
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: dur.fast, ease: ease.in } }}
+            transition={{ duration: dur.fast, ease: ease.out }}
             onClick={onClose}
             className="absolute inset-0 z-30 bg-canvas/55"
             aria-hidden
