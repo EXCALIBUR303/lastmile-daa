@@ -56,6 +56,7 @@ const THEME_KEY = "lastmile.theme"
 /** Saved choice first, then the OS preference. Storage can throw (private
  *  windows, blocked site data), so every access is guarded. */
 const initialTheme = (): ThemeName => {
+  if (typeof window === "undefined") return "dark"
   try {
     const saved = localStorage.getItem(THEME_KEY)
     if (saved === "dark" || saved === "light") return saved
@@ -73,7 +74,7 @@ const isPhone = () => {
 /** Reflect the theme onto <html> so the CSS custom properties switch too. */
 const applyTheme = (t: ThemeName, remember = false) => {
   if (typeof document !== "undefined") document.documentElement.dataset.theme = t
-  if (remember) {
+  if (remember && typeof window !== "undefined") {
     try { localStorage.setItem(THEME_KEY, t) } catch { /* choice just won't persist */ }
   }
   return t
