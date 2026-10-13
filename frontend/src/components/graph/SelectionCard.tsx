@@ -8,8 +8,8 @@ import type { Instance, VehiclePlan } from "../../types"
 function Line({ k, v, tone }: { k: string; v: React.ReactNode; tone?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="text-[11px] text-muted">{k}</dt>
-      <dd className="mono text-[11px] text-ink" style={tone ? { color: tone } : undefined}>{v}</dd>
+      <dt className="text-caption text-muted">{k}</dt>
+      <dd className="mono text-caption text-ink" style={tone ? { color: tone } : undefined}>{v}</dd>
     </div>
   )
 }
@@ -74,7 +74,7 @@ export function SelectionCard({
                     tone={edge.cost_vu < 0 ? t.status.warn : undefined} />)
     if (edge.cost < 0 || edge.cost_vu < 0) {
       rows.push(
-        <p key="note" className="pt-1 text-[10px] leading-snug text-warn">
+        <p key="note" className="pt-1 text-caption leading-snug text-warn">
           Subsidised in one direction — the negative cost is why Bellman-Ford is needed here.
         </p>,
       )
@@ -93,7 +93,7 @@ export function SelectionCard({
     >
       <div className="mb-2 flex items-center gap-2">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: accent }} />
-        <span className="truncate text-[12px] font-semibold text-ink">{title}</span>
+        <span className="truncate text-body font-semibold text-ink">{title}</span>
         <button
           type="button"
           onClick={onClose}

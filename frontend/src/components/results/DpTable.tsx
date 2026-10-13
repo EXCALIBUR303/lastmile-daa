@@ -44,7 +44,7 @@ export function DpTable({
 
   if (dpRow < 0 && dpCells.size === 0) {
     return (
-      <p className="rounded border border-line bg-raised/40 px-3 py-6 text-center text-[11px] leading-relaxed text-muted">
+      <p className="rounded border border-line bg-raised/40 px-3 py-6 text-center text-caption leading-relaxed text-muted">
         The DP table fills in during playback. Choose a dynamic-programming selector under{" "}
         <span className="text-ink">Order selection</span>, then play the simulation to watch the
         knapsack-with-deadlines table build up.
@@ -55,15 +55,15 @@ export function DpTable({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px] font-medium text-ink">Knapsack DP table</span>
-        <span className="mono text-[10px] text-faint">
+        <span className="text-caption font-medium text-ink">Knapsack DP table</span>
+        <span className="mono text-caption text-faint">
           {dpRow >= 0 ? `order ${dpRow} / ${totalOrders}` : "not started"}
         </span>
       </div>
 
       <div className="flex gap-1.5">
         <div className="flex w-3 shrink-0 items-center justify-center">
-          <span className="whitespace-nowrap text-[10px] text-faint"
+          <span className="whitespace-nowrap text-caption text-faint"
                 style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>
             load used (units) →
           </span>
@@ -72,7 +72,7 @@ export function DpTable({
           <canvas ref={ref} width={width} height={height}
                   className="w-full rounded border border-line"
                   aria-label="Dynamic programming table: reachable states by elapsed time and load used" />
-          <div className="flex items-center justify-between text-[10px] text-faint">
+          <div className="flex items-center justify-between text-caption text-faint">
             <span className="mono">0</span>
             <span>elapsed time (min) →</span>
             <span className="mono">{T}</span>
@@ -80,7 +80,7 @@ export function DpTable({
         </div>
       </div>
 
-      <p className="text-[10px] leading-relaxed text-faint">
+      <p className="text-caption leading-relaxed text-faint">
         Each lit cell is a state (elapsed time, load used) the DP proved reachable; brighter means a
         higher profit is achievable from it. Cells appear as orders are considered, earliest deadline first.
       </p>

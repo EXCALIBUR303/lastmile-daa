@@ -111,7 +111,7 @@ export function ResultsInspector({
             fallback={
               <div className="flex items-center justify-center gap-2 py-10" role="status">
                 <Loader2 size={14} className="animate-spin text-accent" aria-hidden />
-                <span className="text-[11px] text-muted">Loading charts…</span>
+                <span className="text-caption text-muted">Loading charts…</span>
               </div>
             }
           >

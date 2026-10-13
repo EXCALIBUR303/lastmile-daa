@@ -13,7 +13,7 @@ export function AlertList({ alerts }: { alerts: Alert[] }) {
     return (
       <div className="flex items-center gap-2 rounded border border-good/30 bg-good/10 px-2.5 py-2">
         <CheckCircle2 size={14} className="shrink-0 text-good" aria-hidden />
-        <span className="text-[11px] text-good">
+        <span className="text-caption text-good">
           All routes feasible, every deadline met, no cost-model warnings.
         </span>
       </div>
@@ -29,8 +29,8 @@ export function AlertList({ alerts }: { alerts: Alert[] }) {
             <div className="flex items-start gap-2">
               <Icon size={13} className="mt-0.5 shrink-0" aria-hidden />
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold">{a.title}</p>
-                <p className="mt-0.5 text-[10px] leading-relaxed text-muted">{a.detail}</p>
+                <p className="text-caption font-semibold">{a.title}</p>
+                <p className="mt-0.5 text-caption leading-relaxed text-muted">{a.detail}</p>
               </div>
             </div>
           </li>

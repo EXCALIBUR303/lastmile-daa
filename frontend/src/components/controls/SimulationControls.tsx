@@ -61,7 +61,7 @@ export function SimulationControls({ compact = false }: { compact?: boolean }) {
       <div className="flex items-center gap-3 border-t border-line bg-panel px-3 py-2">
         {transport}
         <div className="min-w-0 flex-1">{timeline}</div>
-        <span className="mono shrink-0 text-[11px] text-muted">
+        <span className="mono shrink-0 text-caption text-muted">
           {cursor}/{total}
         </span>
       </div>
@@ -74,8 +74,8 @@ export function SimulationControls({ compact = false }: { compact?: boolean }) {
 
       <div>
         <div className="flex items-baseline justify-between">
-          <span className="text-[11px] font-medium text-muted">Timeline</span>
-          <span className="mono text-[11px] text-ink">
+          <span className="text-caption font-medium text-muted">Timeline</span>
+          <span className="mono text-caption text-ink">
             {cursor.toLocaleString()} / {total.toLocaleString()}
           </span>
         </div>
@@ -87,8 +87,8 @@ export function SimulationControls({ compact = false }: { compact?: boolean }) {
 
       <div>
         <div className="flex items-baseline justify-between">
-          <span className="text-[11px] font-medium text-muted">Speed</span>
-          <span className="mono text-[11px] text-ink">{speed} steps/s</span>
+          <span className="text-caption font-medium text-muted">Speed</span>
+          <span className="mono text-caption text-ink">{speed} steps/s</span>
         </div>
         <input
           type="range" min={1} max={120} value={speed}

@@ -43,7 +43,7 @@ export function Tabs<T extends string>({
               if (e.key === "ArrowRight") onChange(tabs[(i + 1) % tabs.length].id)
               if (e.key === "ArrowLeft") onChange(tabs[(i - 1 + tabs.length) % tabs.length].id)
             }}
-            className={`relative flex min-h-[44px] flex-1 items-center justify-center gap-1.5 px-2 text-[12px]
+            className={`relative flex min-h-[44px] flex-1 items-center justify-center gap-1.5 px-2 text-body
                         md:min-h-[36px]
                         font-medium transition-colors focus-visible:outline focus-visible:-outline-offset-2
                         focus-visible:outline-2 focus-visible:outline-accent
@@ -51,7 +51,7 @@ export function Tabs<T extends string>({
           >
             <span className="truncate">{tab.label}</span>
             {tab.badge && (
-              <span className={`mono rounded px-1 py-px text-[10px] ${BADGE_TONE[tab.badge.tone]}`}>
+              <span className={`mono rounded px-1 py-px text-caption ${BADGE_TONE[tab.badge.tone]}`}>
                 {tab.badge.text}
               </span>
             )}

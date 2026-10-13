@@ -10,8 +10,8 @@ import { Tooltip } from "../ui/Tooltip"
 function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: string }) {
   return (
     <div>
-      <div className="text-[10px] text-faint">{label}</div>
-      <div className={`mono text-[11px] ${tone ?? "text-ink"}`}>{value}</div>
+      <div className="text-caption text-faint">{label}</div>
+      <div className={`mono text-caption ${tone ?? "text-ink"}`}>{value}</div>
     </div>
   )
 }
@@ -50,11 +50,11 @@ function VehicleRow({
             <ChevronRight size={12} aria-hidden />
           </motion.span>
           <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} aria-hidden />
-          <span className="shrink-0 text-[12px] font-medium text-ink">Vehicle {plan.vehicle_id}</span>
+          <span className="shrink-0 text-body font-medium text-ink">Vehicle {plan.vehicle_id}</span>
 
-          <span className="mono ml-auto shrink-0 text-[11px] text-good">{money(plan.profit)}</span>
+          <span className="mono ml-auto shrink-0 text-caption text-good">{money(plan.profit)}</span>
           <span
-            className={`shrink-0 rounded px-1.5 py-px text-[10px] ${
+            className={`shrink-0 rounded px-1.5 py-px text-caption ${
               plan.feasible ? "bg-good/15 text-good" : "bg-bad/15 text-bad"
             }`}
           >
@@ -90,7 +90,7 @@ function VehicleRow({
               style={{ background: color }}
             />
           </div>
-          <span className="mono shrink-0 text-[10px] text-faint">
+          <span className="mono shrink-0 text-caption text-faint">
             {plan.peak_load}/{capacity} peak load
           </span>
         </div>
@@ -118,7 +118,7 @@ function VehicleRow({
               </div>
 
               {plan.mst_lower_bound != null && plan.mst_lower_bound > 0 && (
-                <div className="flex items-baseline justify-between text-[10px]">
+                <div className="flex items-baseline justify-between text-caption">
                   <span className="text-faint">MST lower bound</span>
                   <span className="mono text-muted">
                     {minutes(plan.mst_lower_bound)}
@@ -129,7 +129,7 @@ function VehicleRow({
                 </div>
               )}
               {plan.dp_bound > 0 && (
-                <div className="flex items-baseline justify-between text-[10px]">
+                <div className="flex items-baseline justify-between text-caption">
                   <span className="text-faint">LP profit ceiling</span>
                   <span className="mono text-muted">
                     {money(plan.dp_bound)}
@@ -141,9 +141,9 @@ function VehicleRow({
               )}
 
               <div>
-                <div className="mb-1 text-[10px] text-faint">Selected orders</div>
+                <div className="mb-1 text-caption text-faint">Selected orders</div>
                 {plan.selected.length === 0 ? (
-                  <p className="text-[10px] text-muted">None — every candidate was rejected or repaired away.</p>
+                  <p className="text-caption text-muted">None — every candidate was rejected or repaired away.</p>
                 ) : (
                   <ul className="flex flex-wrap gap-1">
                     {plan.selected.map((oid) => {
@@ -152,7 +152,7 @@ function VehicleRow({
                       return (
                         <li
                           key={oid}
-                          className={`mono rounded border px-1.5 py-0.5 text-[10px] ${
+                          className={`mono rounded border px-1.5 py-0.5 text-caption ${
                             isLate ? "border-bad/40 bg-bad/10 text-bad" : "border-line bg-canvas text-muted"
                           }`}
                           title={order ? `profit ${money(order.profit)}, deadline ${minutes(order.deadline)}` : undefined}
@@ -189,7 +189,7 @@ export function VehiclePanel({
         <button
           type="button"
           onClick={() => focusVehicle(null)}
-          className="w-full rounded border border-accent/40 bg-accent/10 px-2.5 py-1.5 text-[11px] text-accent
+          className="w-full rounded border border-accent/40 bg-accent/10 px-2.5 py-1.5 text-caption text-accent
                      transition-colors hover:bg-accent/15 focus-visible:outline focus-visible:outline-2
                      focus-visible:outline-accent"
         >
@@ -204,18 +204,18 @@ export function VehiclePanel({
       </ul>
 
       <div className="rounded border border-line bg-raised/40 px-2.5 py-2">
-        <div className="text-[11px] font-medium text-muted">
+        <div className="text-caption font-medium text-muted">
           Unserved orders <span className="mono text-faint">({count(unserved.length)})</span>
         </div>
         {unserved.length === 0 ? (
-          <p className="mt-1 text-[10px] text-good">Every order was accepted and delivered.</p>
+          <p className="mt-1 text-caption text-good">Every order was accepted and delivered.</p>
         ) : (
           <ul className="mt-1.5 flex flex-wrap gap-1">
             {unserved.map((oid) => {
               const order = orders.find((o) => o.id === oid)
               return (
                 <li key={oid}
-                    className="mono rounded border border-line bg-canvas px-1.5 py-0.5 text-[10px] text-faint"
+                    className="mono rounded border border-line bg-canvas px-1.5 py-0.5 text-caption text-faint"
                     title={order ? `profit ${money(order.profit)}, deadline ${minutes(order.deadline)}` : undefined}>
                   #{oid}
                 </li>

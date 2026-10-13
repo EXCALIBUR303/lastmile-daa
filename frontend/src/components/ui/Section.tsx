@@ -37,7 +37,7 @@ export function Section({
                        className="text-faint group-hover:text-muted">
             <ChevronRight size={13} aria-hidden />
           </motion.span>
-          <span className="text-[12px] font-semibold tracking-wide text-ink">{title}</span>
+          <span className="text-body font-semibold tracking-wide text-ink">{title}</span>
           {hint && (
             <Tooltip content={hint}>
               <Info size={12} className="text-faint" aria-hidden />
@@ -69,7 +69,7 @@ export function Section({
 export function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-[11px] font-medium text-muted">{children}</span>
+      <span className="text-caption font-medium text-muted">{children}</span>
       {hint && (
         <Tooltip content={hint}>
           <Info size={11} className="cursor-help text-faint" aria-hidden />

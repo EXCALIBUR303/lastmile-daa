@@ -22,13 +22,13 @@ function Scale({ min, max }: { min: number; max: number }) {
   const heat = heatFor(useTokens())
   return (
     <div className="flex items-center gap-2">
-      <span className="mono text-[10px] text-faint">{minutes(min)}</span>
+      <span className="mono text-caption text-faint">{minutes(min)}</span>
       <div
         className="h-1.5 flex-1 rounded-full"
         style={{ background: `linear-gradient(90deg, ${heat(min, min, max)}, ${heat(max, min, max)})` }}
         aria-hidden
       />
-      <span className="mono text-[10px] text-faint">{minutes(max)}</span>
+      <span className="mono text-caption text-faint">{minutes(max)}</span>
     </div>
   )
 }
@@ -89,14 +89,14 @@ function DomGrid({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
           {apsp.node_ids.map((id, j) => (
             <div
               key={`h${id}`}
-              className="mono flex items-center justify-center text-[10px] text-faint"
+              className="mono flex items-center justify-center text-caption text-faint"
               style={{ height: cellPx, background: j === k ? band : "transparent" }}
             >{id}</div>
           ))}
           {apsp.node_ids.map((rid, i) => (
             <Fragment key={`row${rid}`}>
               <div
-                className="mono flex items-center justify-center text-[10px] text-faint"
+                className="mono flex items-center justify-center text-caption text-faint"
                 style={{ width: cellPx, background: i === k ? band : "transparent" }}
               >{rid}</div>
               {apsp.node_ids.map((_, j) => {
@@ -125,7 +125,7 @@ function DomGrid({ apsp, k }: { apsp: ApspMatrixData; k: number }) {
 export function ApspMatrix({ apsp, k }: { apsp: ApspMatrixData | null; k: number }) {
   if (!apsp) {
     return (
-      <p className="rounded border border-line bg-raised/40 px-3 py-6 text-center text-[11px] leading-relaxed text-muted">
+      <p className="rounded border border-line bg-raised/40 px-3 py-6 text-center text-caption leading-relaxed text-muted">
         No all-pairs matrix for this run. Choose <span className="text-ink">Floyd-Warshall</span> or{" "}
         <span className="text-ink">Johnson</span> under Shortest paths, then Run — targeted Dijkstra
         only computes distances from stop nodes, so it produces no full n×n matrix.
@@ -137,10 +137,10 @@ export function ApspMatrix({ apsp, k }: { apsp: ApspMatrixData | null; k: number
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px] font-medium text-ink">
+        <span className="text-caption font-medium text-ink">
           {apsp.algorithm === "floyd" ? "Floyd-Warshall" : "Johnson"}
         </span>
-        <span className="mono text-[10px] text-faint">
+        <span className="mono text-caption text-faint">
           {n}×{n}
           {apsp.algorithm === "floyd" && (k >= 0 ? ` · k=${k}` : " · not started")}
         </span>
@@ -151,7 +151,7 @@ export function ApspMatrix({ apsp, k }: { apsp: ApspMatrixData | null; k: number
       {n > DOM_GRID_MAX_N
         ? <CanvasHeatmap apsp={apsp} k={apsp.algorithm === "floyd" ? k : -1} />
         : <DomGrid apsp={apsp} k={apsp.algorithm === "floyd" ? k : -1} />}
-      <p className="text-[10px] leading-relaxed text-faint">
+      <p className="text-caption leading-relaxed text-faint">
         Cell (i, j) is the shortest travel time from node i to node j; brighter means further.
         {apsp.algorithm === "floyd" && " The amber band is the current intermediate node k."}
       </p>

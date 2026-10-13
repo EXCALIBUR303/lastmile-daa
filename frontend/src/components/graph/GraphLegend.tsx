@@ -23,7 +23,7 @@ function Dash({ color, dashed = false, width = 2 }: { color: string; dashed?: bo
 
 function Row({ swatch, children }: { swatch: React.ReactNode; children: React.ReactNode }) {
   return (
-    <li className="flex items-center gap-1.5 text-[10px] leading-tight text-muted">
+    <li className="flex items-center gap-1.5 text-caption leading-tight text-muted">
       {swatch}
       <span className="truncate">{children}</span>
     </li>
@@ -33,7 +33,7 @@ function Row({ swatch, children }: { swatch: React.ReactNode; children: React.Re
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <p className="mb-1 text-[10px] uppercase tracking-wide text-faint">{title}</p>
+      <p className="mb-1 text-caption uppercase tracking-wide text-faint">{title}</p>
       <ul className="space-y-1">{children}</ul>
     </div>
   )
@@ -53,7 +53,7 @@ export function GraphLegend({ vehicleCount }: { vehicleCount: number }) {
         onClick={toggle}
         aria-expanded={open}
         aria-controls="graph-legend"
-        className="flex min-h-[44px] w-full items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold text-ink md:min-h-0
+        className="flex min-h-[44px] w-full items-center gap-1.5 px-2.5 py-1.5 text-caption font-semibold text-ink md:min-h-0
                    focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2
                    focus-visible:outline-accent"
       >

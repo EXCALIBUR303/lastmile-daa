@@ -265,19 +265,19 @@ export function ExperimentsPanel() {
       />
 
       <div>
-        <h4 className="text-[12px] font-semibold text-ink">{meta.label}</h4>
-        <p className="mt-0.5 text-[11px] leading-snug text-muted">{meta.question}</p>
+        <h4 className="text-body font-semibold text-ink">{meta.label}</h4>
+        <p className="mt-0.5 text-caption leading-snug text-muted">{meta.question}</p>
       </div>
 
       {loading && (
         <div className="flex items-center justify-center gap-2 py-10" role="status">
           <Loader2 size={14} className="animate-spin text-accent" aria-hidden />
-          <span className="text-[11px] text-muted">Running sweep…</span>
+          <span className="text-caption text-muted">Running sweep…</span>
         </div>
       )}
 
       {error && !loading && (
-        <div role="alert" className="rounded border border-bad/40 bg-bad/10 px-2.5 py-2 text-[11px] text-bad">
+        <div role="alert" className="rounded border border-bad/40 bg-bad/10 px-2.5 py-2 text-caption text-bad">
           {error}
         </div>
       )}
@@ -287,7 +287,7 @@ export function ExperimentsPanel() {
           type="button"
           onClick={() => void run(experiment)}
           className="flex w-full items-center justify-center gap-2 rounded border border-line bg-raised px-3 py-6
-                     text-[11px] text-muted transition-colors hover:border-accent hover:text-accent
+                     text-caption text-muted transition-colors hover:border-accent hover:text-accent
                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
         >
           <Play size={13} aria-hidden />
@@ -298,8 +298,8 @@ export function ExperimentsPanel() {
       {!loading && !error && rows && (
         <>
           <Chart rows={rows} />
-          <p className="text-[10px] leading-relaxed text-faint">{meta.note}</p>
-          <p className="mono border-t border-line pt-2 text-[10px] text-faint">
+          <p className="text-caption leading-relaxed text-faint">{meta.note}</p>
+          <p className="mono border-t border-line pt-2 text-caption text-faint">
             {rows.length} rows · {ms(runtimeMs)} · full sweep offline: python -m bench.run_bench
           </p>
         </>

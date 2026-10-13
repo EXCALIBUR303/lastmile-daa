@@ -58,7 +58,7 @@ export function Drawer({
             className={`absolute z-40 flex flex-col border-line bg-panel outline-none ${geometry.className}`}
           >
             <div className="flex shrink-0 items-center justify-between border-b border-line px-3 py-2">
-              <h2 className="text-[12px] font-semibold text-ink">{title}</h2>
+              <h2 className="text-body font-semibold text-ink">{title}</h2>
               <button
                 type="button"
                 onClick={onClose}

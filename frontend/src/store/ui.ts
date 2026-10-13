@@ -51,14 +51,32 @@ const DEFAULT_SECTIONS: Record<string, boolean> = {
   simulation: true,
 }
 
+const THEME_KEY = "lastmile.theme"
+
+/** Saved choice first, then the OS preference. Storage can throw (private
+ *  windows, blocked site data), so every access is guarded. */
+const initialTheme = (): ThemeName => {
+  try {
+    const saved = localStorage.getItem(THEME_KEY)
+    if (saved === "dark" || saved === "light") return saved
+  } catch { /* fall through to the OS preference */ }
+  try {
+    if (window.matchMedia("(prefers-color-scheme: light)").matches) return "light"
+  } catch { /* no matchMedia (tests, old engines) */ }
+  return "dark"
+}
+
 /** Reflect the theme onto <html> so the CSS custom properties switch too. */
-const applyTheme = (t: ThemeName) => {
+const applyTheme = (t: ThemeName, remember = false) => {
   if (typeof document !== "undefined") document.documentElement.dataset.theme = t
+  if (remember) {
+    try { localStorage.setItem(THEME_KEY, t) } catch { /* choice just won't persist */ }
+  }
   return t
 }
 
 export const useUi = create<UiStore>((set) => ({
-  theme: applyTheme("dark"),
+  theme: applyTheme(initialTheme()),
   leftOpen: true,
   rightOpen: true,
   resultTab: "summary",
@@ -69,8 +87,8 @@ export const useUi = create<UiStore>((set) => ({
   legendOpen: true,
   openSections: DEFAULT_SECTIONS,
 
-  setTheme: (t) => set({ theme: applyTheme(t) }),
-  toggleTheme: () => set((s) => ({ theme: applyTheme(s.theme === "dark" ? "light" : "dark") })),
+  setTheme: (t) => set({ theme: applyTheme(t, true) }),
+  toggleTheme: () => set((s) => ({ theme: applyTheme(s.theme === "dark" ? "light" : "dark", true) })),
   toggleLeft: () => set((s) => ({ leftOpen: !s.leftOpen })),
   toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
   setResultTab: (resultTab) => set({ resultTab }),

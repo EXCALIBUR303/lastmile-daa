@@ -59,7 +59,7 @@ export default function App() {
     <ResultsInspector data={data} view={view} capacity={gen.capacity}
                       horizon={gen.horizon} ordersRequested={gen.n_orders} />
   ) : (
-    <p className="p-4 text-[11px] text-muted">
+    <p className="p-4 text-caption text-muted">
       {loading ? "Solving…" : "No results yet. Choose Run to solve an instance."}
     </p>
   )

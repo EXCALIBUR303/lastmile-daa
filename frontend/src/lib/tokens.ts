@@ -43,7 +43,7 @@ const light: Palette = {
   text: { ink: "#0f1722", muted: "#525f76", faint: "#5e6a82" },
   status: { accent: "#0b6f94", good: "#0a7350", warn: "#8a5200", bad: "#b3261e", violet: "#6d28d9" },
   vehicles: ["#0b6f94", "#6d28d9", "#0a7350", "#8a5200", "#a81b52"],
-  nodeFill: { depot: "#b26a00", pickup: "#0b6f94", drop: "#6d28d9", junction: "#8d9aad" },
+  nodeFill: { depot: "#b26a00", pickup: "#0b6f94", drop: "#6d28d9", junction: "#7a879c" },
   edgeStroke: { network: "#c3ccda", subsidised: "#b26a00", relaxed: "#0b6f94", mst: "#0a7350", selected: "#0f1722" },
   heat: { apspHue: 198, dpHue: 268, lightFrom: 92, lightTo: 38, empty: "#eaeef4" },
 }

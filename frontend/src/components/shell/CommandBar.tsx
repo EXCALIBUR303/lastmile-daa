@@ -21,8 +21,8 @@ function Stat({
 }) {
   return (
     <div className={`items-baseline gap-1 whitespace-nowrap ${secondary ? "hidden xl:flex" : "flex"}`}>
-      <span className="text-[10px] uppercase tracking-wide text-faint">{label}</span>
-      <span className={`mono text-[11px] ${tone}`}>{value}</span>
+      <span className="text-caption uppercase tracking-wide text-faint">{label}</span>
+      <span className={`mono text-caption ${tone}`}>{value}</span>
     </div>
   )
 }
@@ -49,13 +49,13 @@ export function CommandBar({
 
   const statusChip = error ? (
     <span role="status" aria-label="Solve failed"
-          className="flex shrink-0 items-center gap-1.5 rounded border border-bad/40 bg-bad/10 px-2 py-1 text-[11px] text-bad">
+          className="flex shrink-0 items-center gap-1.5 rounded border border-bad/40 bg-bad/10 px-2 py-1 text-caption text-bad">
       <AlertTriangle size={12} aria-hidden />
       {!terse && <span className="max-w-[220px] truncate">Solve failed</span>}
     </span>
   ) : loading ? (
     <span role="status" aria-label="Solving"
-          className="flex shrink-0 items-center gap-1.5 rounded border border-line bg-raised px-2 py-1 text-[11px] text-muted">
+          className="flex shrink-0 items-center gap-1.5 rounded border border-line bg-raised px-2 py-1 text-caption text-muted">
       <Loader2 size={12} className="animate-spin" aria-hidden />
       {!terse && "Solving"}
     </span>
@@ -63,7 +63,7 @@ export function CommandBar({
     <span
       role="status"
       aria-label={alertCount > 0 ? `${count(alertCount)} alerts to review` : "Solved, no alerts"}
-      className={`flex shrink-0 items-center gap-1.5 rounded border px-2 py-1 text-[11px] ${
+      className={`flex shrink-0 items-center gap-1.5 rounded border px-2 py-1 text-caption ${
         alertCount > 0
           ? "border-warn/35 bg-warn/10 text-warn"
           : "border-good/30 bg-good/10 text-good"
@@ -79,10 +79,10 @@ export function CommandBar({
       {/* ---- identity. Allowed to shrink and truncate: if this block refuses
            to give up width, it pushes Run off the edge on a narrow phone. */}
       <div className="min-w-0 flex-1 md:flex-none md:shrink-0">
-        <h1 className="truncate text-[13px] font-semibold leading-tight text-ink">
+        <h1 className="truncate text-title font-semibold leading-tight text-ink">
           Last-mile Delivery with Deadlines
         </h1>
-        <p className="mono truncate text-[10px] leading-tight text-faint">DAA · Group 7 · Topic 2</p>
+        <p className="mono truncate text-caption leading-tight text-faint">DAA · Group 7 · Topic 2</p>
       </div>
 
       {/* ---- pipeline, desktop only: it is orientation, not a control */}
@@ -92,7 +92,7 @@ export function CommandBar({
           {PIPELINE.map((s, i) => (
             <li key={s} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-faint" aria-hidden>→</span>}
-              <span className="whitespace-nowrap text-[10px] text-muted">{s}</span>
+              <span className="whitespace-nowrap text-caption text-muted">{s}</span>
             </li>
           ))}
         </ol>
@@ -162,7 +162,7 @@ export function CommandBar({
           onClick={onRun}
           disabled={loading}
           aria-busy={loading}
-          className="flex min-h-[44px] items-center gap-1.5 rounded bg-accent px-3 text-[12px] font-semibold md:min-h-[32px]
+          className="flex min-h-[44px] items-center gap-1.5 rounded bg-accent px-3 text-body font-semibold md:min-h-[32px]
                      text-canvas transition-opacity hover:opacity-90 disabled:cursor-not-allowed
                      disabled:opacity-40 focus-visible:outline focus-visible:outline-2
                      focus-visible:outline-offset-2 focus-visible:outline-accent"

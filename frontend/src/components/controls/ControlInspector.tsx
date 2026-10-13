@@ -78,7 +78,7 @@ export function ControlInspector({
             type="button"
             onClick={() => setGen({ seed: 1 + Math.floor(Math.random() * 999) })}
             className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded border border-line
-                       bg-raised px-2 text-[11px] text-muted transition-colors hover:border-lineStrong
+                       bg-raised px-2 text-caption text-muted transition-colors hover:border-lineStrong
                        hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                        md:min-h-[32px]"
           >
@@ -88,7 +88,7 @@ export function ControlInspector({
             type="button"
             onClick={onRun}
             className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded border border-line
-                       bg-raised px-2 text-[11px] text-muted transition-colors hover:border-lineStrong
+                       bg-raised px-2 text-caption text-muted transition-colors hover:border-lineStrong
                        hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                        md:min-h-[32px]"
           >
@@ -98,7 +98,7 @@ export function ControlInspector({
 
         {tooFewNodes && (
           <p role="alert" className="flex items-start gap-1.5 rounded border border-bad/40 bg-bad/10 px-2 py-1.5
-                                     text-[11px] leading-snug text-bad">
+                                     text-caption leading-snug text-bad">
             <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
             <span>Need at least {nodesNeeded} nodes to place {gen.n_orders} orders. Raise Nodes or lower Orders.</span>
           </p>
@@ -110,7 +110,7 @@ export function ControlInspector({
         <Segmented id="apsp" label="Shortest path strategy" options={APSP_MODES}
                    value={cfg.apsp} onChange={(m) => setCfg({ apsp: m })}
                    describe={(m) => APSP_NOTE[m]} />
-        <p className="text-[11px] leading-snug text-faint">
+        <p className="text-caption leading-snug text-faint">
           Bellman-Ford always runs alongside these to screen the cost model for negative cycles.
         </p>
       </Section>
@@ -138,7 +138,7 @@ export function ControlInspector({
                      value={cfg.selector} onChange={(s) => setCfg({ selector: s })}
                      describe={(s) => SELECTOR_NOTE[s]} />
         </div>
-        <p className="text-[11px] leading-snug text-faint">
+        <p className="text-caption leading-snug text-faint">
           One selector is active at a time; the highlighted pill above shows which.
         </p>
       </Section>

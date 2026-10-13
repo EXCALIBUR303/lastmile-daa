@@ -30,8 +30,8 @@ function Kpi({
   return (
     <div className={`border-b border-line/70 py-2 ${wide ? "col-span-2" : ""}`}>
       <div className="flex items-center gap-1">
-        <span className="text-[11px] text-muted">{label}</span>
-        {unit && <span className="text-[10px] text-faint">({unit})</span>}
+        <span className="text-caption text-muted">{label}</span>
+        {unit && <span className="text-caption text-faint">({unit})</span>}
         {hint && <Hint label={label}>{hint}</Hint>}
       </div>
       <motion.div
@@ -39,11 +39,11 @@ function Kpi({
         initial={{ opacity: 0, y: -3 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring}
-        className={`mono text-[17px] font-semibold leading-tight ${TONE_CLASS[tone]}`}
+        className={`mono text-display font-semibold leading-tight ${TONE_CLASS[tone]}`}
       >
         {value}
       </motion.div>
-      {sub && <div className="mt-0.5 text-[10px] leading-snug text-faint">{sub}</div>}
+      {sub && <div className="mt-0.5 text-caption leading-snug text-faint">{sub}</div>}
     </div>
   )
 }
@@ -120,7 +120,7 @@ export function SummaryPanel({
       </section>
 
       <section aria-label="Alerts and feasibility">
-        <h4 className="mb-1.5 text-[11px] font-semibold text-muted">Alerts &amp; feasibility</h4>
+        <h4 className="mb-1.5 text-caption font-semibold text-muted">Alerts &amp; feasibility</h4>
         <AlertList alerts={alerts} />
       </section>
     </div>

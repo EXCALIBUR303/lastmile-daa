@@ -185,8 +185,8 @@ export function GraphWorkspace({
       {!inst && !loading && !error && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
           <Crosshair size={22} className="text-faint" aria-hidden />
-          <p className="text-[13px] text-muted">No instance loaded</p>
-          <p className="max-w-[260px] text-[11px] text-faint">
+          <p className="text-title text-muted">No instance loaded</p>
+          <p className="max-w-[260px] text-caption text-faint">
             Set the dataset parameters, then choose Run to generate a network and solve it.
           </p>
         </div>
@@ -197,10 +197,10 @@ export function GraphWorkspace({
           <div role="alert" className="max-w-[340px] rounded-md border border-bad/40 bg-bad/10 p-4">
             <div className="mb-1.5 flex items-center gap-2 text-bad">
               <AlertTriangle size={15} aria-hidden />
-              <span className="text-[12px] font-semibold">Solve failed</span>
+              <span className="text-body font-semibold">Solve failed</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-muted">{error}</p>
-            <p className="mt-2 text-[11px] text-faint">
+            <p className="text-caption leading-relaxed text-muted">{error}</p>
+            <p className="mt-2 text-caption text-faint">
               The last successful result is no longer shown. Adjust the parameters and run again.
             </p>
           </div>
@@ -215,7 +215,7 @@ export function GraphWorkspace({
           >
             <div className="flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-2">
               <Loader2 size={14} className="animate-spin text-accent" aria-hidden />
-              <span className="text-[12px] text-ink" role="status">Solving…</span>
+              <span className="text-body text-ink" role="status">Solving…</span>
             </div>
           </motion.div>
         )}
@@ -229,11 +229,11 @@ export function GraphWorkspace({
             className="h-1.5 w-1.5 shrink-0 rounded-full"
             style={{ background: stage ? stageColorFor(t, stage) : t.text.faint }}
           />
-          <span className="text-[11px] text-muted">{stage ?? "idle"}</span>
-          <span className="mono text-[11px] text-accent">{minutes(view.clock)}</span>
-          <span className="mono text-[10px] text-faint">{stepLabel}</span>
+          <span className="text-caption text-muted">{stage ?? "idle"}</span>
+          <span className="mono text-caption text-accent">{minutes(view.clock)}</span>
+          <span className="mono text-caption text-faint">{stepLabel}</span>
           {view.late.size > 0 && (
-            <span className="mono rounded bg-bad/20 px-1.5 py-px text-[10px] text-bad">
+            <span className="mono rounded bg-bad/20 px-1.5 py-px text-caption text-bad">
               {view.late.size} late
             </span>
           )}
@@ -261,7 +261,7 @@ export function GraphWorkspace({
           >
             {labelsVisible ? <Tag size={14} aria-hidden /> : <TagsIcon size={14} aria-hidden />}
           </IconButton>
-          <span className="mono px-1 text-[10px] text-faint" aria-live="polite">{zoomPct}%</span>
+          <span className="mono px-1 text-caption text-faint" aria-live="polite">{zoomPct}%</span>
         </div>
       )}
 

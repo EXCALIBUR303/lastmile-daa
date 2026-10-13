@@ -44,7 +44,7 @@ export function Tooltip({
           role="tooltip"
           id={id}
           className={`pointer-events-none absolute ${pos} z-50 w-max max-w-[240px] rounded-md border border-line
-                      bg-raised px-2.5 py-1.5 text-[12px] leading-snug text-ink shadow-lg shadow-black/50`}
+                      bg-raised px-2.5 py-1.5 text-body leading-snug text-ink shadow-pop`}
         >
           {content}
         </span>
@@ -70,7 +70,7 @@ export function Hint({ label, children }: { label: string; children: React.React
                    focus-visible:outline-accent"
       >
         <span
-          className="flex h-4 w-4 items-center justify-center rounded-full border border-line text-[10px]
+          className="flex h-4 w-4 items-center justify-center rounded-full border border-line text-caption
                      font-semibold text-faint transition-colors group-hover:border-accent group-hover:text-accent"
           aria-hidden
         >

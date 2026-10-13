@@ -35,7 +35,7 @@ export function Segmented<T extends string>({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(option)}
-            className={`relative w-full min-h-[44px] rounded px-2 py-1.5 text-[11px] font-medium transition-colors
+            className={`relative w-full min-h-[44px] rounded px-2 py-1.5 text-caption font-medium transition-colors
                         focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2
                         focus-visible:outline-accent md:min-h-[30px]
                         ${active ? "text-canvas" : "text-muted hover:text-ink"}`}
@@ -104,10 +104,10 @@ export function NumberField({
   return (
     <div className={disabled ? "pointer-events-none opacity-40" : ""}>
       <div className="flex items-center gap-1.5">
-        <label htmlFor={id} className="text-[11px] font-medium text-muted">{label}</label>
+        <label htmlFor={id} className="text-caption font-medium text-muted">{label}</label>
         {hint && (
           <Tooltip content={hint}>
-            <span className="cursor-help text-[10px] text-faint">?</span>
+            <span className="cursor-help text-caption text-faint">?</span>
           </Tooltip>
         )}
         <div className="ml-auto flex items-center gap-1">
@@ -124,11 +124,11 @@ export function NumberField({
             onBlur={(e) => commit(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") commit((e.target as HTMLInputElement).value) }}
             className="mono min-h-[44px] w-16 rounded border border-line bg-canvas px-1.5 py-0.5 text-right
-                       text-[12px] text-ink [appearance:textfield] focus-visible:border-accent
+                       text-body text-ink [appearance:textfield] focus-visible:border-accent
                        focus-visible:outline-none md:min-h-0 md:w-14
                        [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
-          {suffix && <span className="text-[10px] text-faint">{suffix}</span>}
+          {suffix && <span className="text-caption text-faint">{suffix}</span>}
         </div>
       </div>
       <input
