@@ -14,6 +14,7 @@ import { useInstance } from "./store/instance"
 import { usePlayback } from "./store/playback"
 import { useSolution } from "./store/solution"
 import { useUi } from "./store/ui"
+import { milestones, phaseAt } from "./trace/phase"
 import { buildCheckpoints, emptyView, foldTrace } from "./trace/reducer"
 import type { Step } from "./types"
 
@@ -36,6 +37,7 @@ export default function App() {
   // checkpoint build and the fold on every unrelated state change.
   const trace = data?.trace ?? NO_TRACE
   const checkpoints = useMemo(() => buildCheckpoints(trace), [trace])
+  const marks = useMemo(() => milestones(trace), [trace])
   const view = useMemo(
     () => (trace.length ? foldTrace(trace, cursor, checkpoints) : emptyView()),
     [trace, cursor, checkpoints],
@@ -98,7 +100,7 @@ export default function App() {
               inst={data?.instance ?? null}
               plans={data?.result.plans ?? []}
               view={view}
-              showRoutes={cursor > 0}
+              phase={phaseAt(marks, cursor, total)}
               loading={loading}
               error={error}
               onRun={runSolve}

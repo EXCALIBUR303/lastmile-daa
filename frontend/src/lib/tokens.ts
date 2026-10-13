@@ -21,6 +21,8 @@ export interface Palette {
    *  distinguishable under deuteranopia, protanopia and tritanopia
    *  (minimum CIELAB distance 11+; the route palette dropped to 2.5). */
   series: readonly string[]
+  /** Stops are neutral on purpose: their shape says pickup or drop-off, which
+   *  leaves colour to mean only "which vehicle" on the canvas. */
   nodeFill: { depot: string; pickup: string; drop: string; junction: string }
   edgeStroke: { network: string; subsidised: string; relaxed: string; mst: string; selected: string }
   /** Hue/lightness inputs for the APSP and DP heatmaps. */
@@ -35,8 +37,8 @@ const dark: Palette = {
   status: { accent: "#5ad1ff", good: "#3ddc97", warn: "#ffc857", bad: "#ff6b6b", violet: "#c084fc" },
   vehicles: ["#5ad1ff", "#c084fc", "#3ddc97", "#ffc857", "#ff8fab"],
   series: ["#56b4e9", "#e69f00", "#009e73", "#cc79a7"],
-  nodeFill: { depot: "#ffc857", pickup: "#5ad1ff", drop: "#c084fc", junction: "#5b7099" },
-  edgeStroke: { network: "#2b3b57", subsidised: "#ffc857", relaxed: "#5ad1ff", mst: "#3ddc97", selected: "#ffffff" },
+  nodeFill: { depot: "#ffc857", pickup: "#d5deee", drop: "#d5deee", junction: "#5b7099" },
+  edgeStroke: { network: "#2b3b57", subsidised: "#ffc857", relaxed: "#5ad1ff", mst: "#a3b1cc", selected: "#ffffff" },
   heat: { apspHue: 198, dpHue: 268, lightFrom: 14, lightTo: 54, empty: "#161e2c" },
 }
 
@@ -49,8 +51,8 @@ const light: Palette = {
   status: { accent: "#0b6f94", good: "#0a7350", warn: "#8a5200", bad: "#b3261e", violet: "#6d28d9" },
   vehicles: ["#0b6f94", "#6d28d9", "#0a7350", "#8a5200", "#a81b52"],
   series: ["#0072b2", "#b85c00", "#00725a", "#a0467f"],
-  nodeFill: { depot: "#b26a00", pickup: "#0b6f94", drop: "#6d28d9", junction: "#7a879c" },
-  edgeStroke: { network: "#c3ccda", subsidised: "#b26a00", relaxed: "#0b6f94", mst: "#0a7350", selected: "#0f1722" },
+  nodeFill: { depot: "#b26a00", pickup: "#3b4659", drop: "#3b4659", junction: "#7a879c" },
+  edgeStroke: { network: "#c3ccda", subsidised: "#b26a00", relaxed: "#0b6f94", mst: "#4b5870", selected: "#0f1722" },
   heat: { apspHue: 198, dpHue: 268, lightFrom: 92, lightTo: 38, empty: "#eaeef4" },
 }
 

@@ -8,6 +8,7 @@ import { minutes } from "../../lib/format"
 import { stageColorFor, useTokens } from "../../lib/tokens"
 import { describeSelection, stepSelection } from "../../lib/selectionNav"
 import { useUi } from "../../store/ui"
+import type { Phase } from "../../trace/phase"
 import type { ViewState } from "../../trace/reducer"
 import type { Instance, VehiclePlan } from "../../types"
 import { IconButton } from "../ui/Field"
@@ -26,12 +27,12 @@ const DRAG_THRESHOLD_PX = 4
 const LABEL_AUTO_LIMIT = 70
 
 export function GraphWorkspace({
-  inst, plans, view, showRoutes, loading, error, onRun, stage, stepLabel,
+  inst, plans, view, phase, loading, error, onRun, stage, stepLabel,
 }: {
   inst: Instance | null
   plans: VehiclePlan[]
   view: ViewState
-  showRoutes: boolean
+  phase: Phase
   loading: boolean
   error: string | null
   onRun: () => void
@@ -46,6 +47,7 @@ export function GraphWorkspace({
   const containerRef = useRef<HTMLDivElement>(null)
   const [labelsOn, setLabelsOn] = useState<boolean | null>(null) // null = automatic
   const [aspect, setAspect] = useState(1)
+  const [stagePx, setStagePx] = useState(800)
 
   // Track the stage's shape so the viewBox can fill it instead of being
   // letterboxed into a square in the middle of a wide panel.
@@ -54,7 +56,7 @@ export function GraphWorkspace({
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect
-      if (width > 0 && height > 0) setAspect(width / height)
+      if (width > 0 && height > 0) { setAspect(width / height); setStagePx(width) }
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -190,8 +192,8 @@ export function GraphWorkspace({
       >
         {inst && !error && (
           <CanvasStage
-            inst={inst} plans={plans} view={view} showRoutes={showRoutes}
-            viewBox={renderBox} selection={selection} focusedVehicle={focusedVehicle}
+            inst={inst} plans={plans} view={view} phase={phase}
+            viewBox={renderBox} stagePx={stagePx} selection={selection} focusedVehicle={focusedVehicle}
             onSelect={select} labelsVisible={labelsVisible}
           />
         )}
