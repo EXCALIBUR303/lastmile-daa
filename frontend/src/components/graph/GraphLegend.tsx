@@ -48,7 +48,7 @@ export function GraphLegend({ vehicleCount }: { vehicleCount: number }) {
   const toggle = useUi((s) => s.toggleLegend)
 
   return (
-    <div className="pointer-events-auto w-[212px] rounded-md border border-line bg-panel/92 backdrop-blur-sm">
+    <div className="pointer-events-auto w-[212px] rounded-md border border-line bg-panel">
       <button
         type="button"
         onClick={toggle}

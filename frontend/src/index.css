@@ -77,6 +77,9 @@
 }
 
 html, body, #root { height: 100%; }
+/* Phones: 100% can exceed the visible area while the browser toolbar is
+   showing; dvh tracks what is actually on screen. */
+@supports (height: 100dvh) { #root { height: 100dvh; } }
 
 body {
   margin: 0;

@@ -58,7 +58,7 @@ export function SimulationControls({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 border-t border-line bg-panel px-3 py-2">
+      <div className="flex items-center gap-3 border-t border-line bg-panel px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {transport}
         <div className="min-w-0 flex-1">{timeline}</div>
         <span className="mono shrink-0 text-caption text-muted">

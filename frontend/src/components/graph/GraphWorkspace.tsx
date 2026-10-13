@@ -241,7 +241,7 @@ export function GraphWorkspace({
       {/* ---- status readout (top-left) */}
       {inst && !error && (
         <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-md
-                        border border-line bg-panel/88 px-2.5 py-1.5 backdrop-blur-sm">
+                        border border-line bg-panel px-2.5 py-1.5">
           <span
             className="h-1.5 w-1.5 shrink-0 rounded-full"
             style={{ background: stage ? stageColorFor(t, stage) : t.text.faint }}
@@ -259,8 +259,8 @@ export function GraphWorkspace({
 
       {/* ---- graph toolbar (top-right) */}
       {inst && !error && (
-        <div className="absolute right-3 top-3 flex items-center gap-1 rounded-md border border-line
-                        bg-panel/88 p-1 backdrop-blur-sm">
+        <div className="absolute right-3 top-16 flex flex-col items-center gap-1 rounded-md border border-line
+                        bg-panel p-1 md:top-3 md:flex-row">
           <IconButton label="Zoom in" size="sm" onClick={() => zoomBy(1 / ZOOM_STEP)}>
             <Plus size={14} aria-hidden />
           </IconButton>

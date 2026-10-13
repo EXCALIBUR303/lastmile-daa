@@ -66,6 +66,10 @@ const initialTheme = (): ThemeName => {
   return "dark"
 }
 
+const isPhone = () => {
+  try { return window.matchMedia("(max-width: 767px)").matches } catch { return false }
+}
+
 /** Reflect the theme onto <html> so the CSS custom properties switch too. */
 const applyTheme = (t: ThemeName, remember = false) => {
   if (typeof document !== "undefined") document.documentElement.dataset.theme = t
@@ -84,7 +88,9 @@ export const useUi = create<UiStore>((set) => ({
   mobilePane: "none",
   focusedVehicle: null,
   selection: null,
-  legendOpen: true,
+  // The legend is a fixed block over the map; on a phone it would cover a
+  // quarter of it, so it starts collapsed there.
+  legendOpen: !isPhone(),
   openSections: DEFAULT_SECTIONS,
 
   setTheme: (t) => set({ theme: applyTheme(t, true) }),

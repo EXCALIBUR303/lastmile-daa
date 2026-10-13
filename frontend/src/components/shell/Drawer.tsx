@@ -70,7 +70,7 @@ export function Drawer({
                 <X size={15} aria-hidden />
               </button>
             </div>
-            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">{children}</div>
+            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">{children}</div>
           </motion.div>
         </>
       )}

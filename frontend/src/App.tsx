@@ -86,7 +86,7 @@ export default function App() {
           {layout === "desktop" && leftOpen && (
             <aside
               aria-label="Controls"
-              className="scroll-thin w-[276px] shrink-0 overflow-y-auto border-r border-line bg-panel"
+              className="scroll-thin w-[276px] shrink-0 2xl:w-[312px] overflow-y-auto border-r border-line bg-panel"
             >
               {controls}
             </aside>
@@ -115,7 +115,7 @@ export default function App() {
           {layout === "desktop" && rightOpen && (
             <aside
               aria-label="Results"
-              className="flex w-[364px] shrink-0 flex-col border-l border-line bg-panel"
+              className="flex w-[364px] shrink-0 2xl:w-[420px] flex-col border-l border-line bg-panel"
             >
               {results}
             </aside>

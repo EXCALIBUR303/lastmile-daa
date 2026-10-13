@@ -90,7 +90,7 @@ export function SelectionCard({
       transition={{ duration: dur.base, ease: ease.out }}
       role="region"
       aria-label="Selection details"
-      className="pointer-events-auto w-[222px] rounded-md border border-line bg-panel/95 p-3 backdrop-blur-sm"
+      className="pointer-events-auto w-[222px] rounded-md border border-line bg-panel p-3"
     >
       <div className="mb-2 flex items-center gap-2">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: accent }} />
