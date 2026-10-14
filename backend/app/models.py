@@ -1,6 +1,6 @@
 """Frozen wire contract between the Python solver and the React dashboard.
 
-Nothing in this file may change shape after Step 1 without updating
+Nothing in this file may change shape once the API is published without updating
 frontend/src/types.ts in the same commit.  The whole point of writing it first
 is that the two halves of the team can build in parallel against it.
 """
@@ -112,9 +112,9 @@ class VehiclePlan(BaseModel):
     visits: list[StopVisit] = Field(default_factory=list)
     profit: float = 0.0
     travel_time: float = 0.0
-    travel_cost: float = 0.0  # sum of directional edge cost along `route` (Step 4)
-    mst_lower_bound: float | None = None  # Step 5: TSP lower bound for this zone
-    dp_bound: float = 0.0  # Step 6: Dantzig LP bound for this vehicle's zone
+    travel_cost: float = 0.0  # sum of directional edge cost along `route`
+    mst_lower_bound: float | None = None  # TSP lower bound for this zone
+    dp_bound: float = 0.0  # Dantzig LP bound for this vehicle's zone
     peak_load: int = 0
     feasible: bool = True
 
@@ -125,9 +125,9 @@ class Metrics(BaseModel):
     orders_total: int = 0
     on_time_pct: float = 100.0
     total_travel_time: float = 0.0
-    total_cost: float = 0.0    # Step 4: accumulated directional edge cost
-    net_profit: float = 0.0    # Step 4: total_profit - total_cost
-    negative_cost_cycle: bool = False  # Step 4: Bellman-Ford flag, see pipeline.py S1
+    total_cost: float = 0.0    # accumulated directional edge cost
+    net_profit: float = 0.0    # total_profit - total_cost
+    negative_cost_cycle: bool = False  # Bellman-Ford flag, see pipeline.py S1
     avg_utilisation: float = 0.0  # peak_load / capacity, averaged over vehicles
     dp_bound: float | None = None
     bound_gap_pct: float | None = None
@@ -156,15 +156,21 @@ class SolveResult(BaseModel):
 
 
 class GenerateRequest(BaseModel):
-    seed: int = 42
-    n_nodes: int = 32
-    density: float = 0.18  # extra chords beyond the connected skeleton
+    """Bounds are enforced here, server-side, not just by the dashboard's
+    sliders: this is a public endpoint, and an unbounded `n_nodes` (the solver
+    is O(n^3) in the worst case) is a one-request denial of service. The caps
+    sit just above what the UI offers; the generator itself still reports the
+    friendlier "need at least N nodes for M orders" message below them."""
+
+    seed: int = Field(42, ge=0, le=1_000_000)
+    n_nodes: int = Field(32, ge=3, le=160)
+    density: float = Field(0.18, ge=0.0, le=0.9)  # extra chords beyond the connected skeleton
     topology: Topology = "radial"
-    n_orders: int = 12
-    n_vehicles: int = 3
-    capacity: int = 10
-    horizon: float = 480.0  # shift length, minutes
-    neg_cost_frac: float = 0.08  # share of edges carrying a subsidy (cost < 0)
+    n_orders: int = Field(12, ge=1, le=60)
+    n_vehicles: int = Field(3, ge=1, le=8)
+    capacity: int = Field(10, ge=1, le=200)
+    horizon: float = Field(480.0, ge=30.0, le=5000.0)  # shift length, minutes
+    neg_cost_frac: float = Field(0.08, ge=0.0, le=0.5)  # share of edges carrying a subsidy (cost < 0)
 
 
 class SolveConfig(BaseModel):
@@ -187,12 +193,12 @@ class SolveResponse(BaseModel):
     trace: list[Step] = Field(default_factory=list)
     truncated: bool = False
     stride: int = 1
-    stub: bool = False  # every stage real as of Step 7 -- see pipeline.py's docstring
-    apsp: ApspMatrix | None = None  # Step 4: set only for apsp="floyd"|"johnson"
+    stub: bool = False  # False: no placeholder stages remain (see pipeline.py)
+    apsp: ApspMatrix | None = None  # set only for apsp="floyd"|"johnson"
 
 
 # --------------------------------------------------------------------------- #
-# Step 8: experiment sweeps
+# Experiment sweeps (S8)
 # --------------------------------------------------------------------------- #
 
 BenchExperiment = Literal["apsp_crossover", "selector_quality", "zoning_quality", "size", "capacity"]

@@ -70,7 +70,11 @@ def sweep_apsp_crossover(
         for density in densities:
             n_orders = max(2, n // 4)
             try:
-                inst = generate(GenerateRequest(
+                # model_construct skips the public API's bounds: this sweep never
+                # runs the knapsack, so the deliberately huge capacity/horizon
+                # (so no order is ever infeasible) cost nothing here, but
+                # would be a denial-of-service on the live /solve endpoint.
+                inst = generate(GenerateRequest.model_construct(
                     seed=seed, n_nodes=n, density=density, n_orders=n_orders,
                     n_vehicles=1, capacity=1000, horizon=100_000,
                 ))

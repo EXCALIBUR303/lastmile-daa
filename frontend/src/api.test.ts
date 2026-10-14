@@ -41,3 +41,13 @@ describe("api error messages", () => {
     await expect(solve(gen, cfg)).rejects.toThrow(/HTTP 502/)
   })
 })
+
+describe("validation errors", () => {
+  it("turns FastAPI's list-shaped detail into readable text", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false, status: 422, statusText: "Unprocessable Content",
+      json: () => Promise.resolve({ detail: [{ loc: ["body", "generate", "n_vehicles"], msg: "Input should be greater than or equal to 1" }] }),
+    }))
+    await expect(solve(gen, cfg)).rejects.toThrow(/generate\.n_vehicles: Input should be greater than or equal to 1/)
+  })
+})

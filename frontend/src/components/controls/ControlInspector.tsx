@@ -3,7 +3,6 @@ import type { GenerateRequest, SolveConfig, Topology } from "../../types"
 import { NumberField, Segmented } from "../ui/Field"
 import { Section } from "../ui/Section"
 import { Tooltip } from "../ui/Tooltip"
-import { SimulationControls } from "./SimulationControls"
 
 const TOPOLOGIES: readonly Topology[] = ["radial", "grid", "scale_free"]
 const APSP_MODES: readonly SolveConfig["apsp"][] = ["dijkstra", "floyd", "johnson"]
@@ -158,11 +157,6 @@ export function ControlInspector({
           <span>Need at least {nodesNeeded} nodes to place {gen.n_orders} orders. Raise Nodes or lower Orders.</span>
         </p>
       )}
-
-      <Group title="Playback" note="Replays the recorded trace; it does not re-solve." />
-      <div className="px-4 py-3">
-        <SimulationControls />
-      </div>
     </div>
   )
 }

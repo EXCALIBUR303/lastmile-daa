@@ -43,7 +43,15 @@ async function post<T>(path: string, body: unknown, signal?: AbortSignal): Promi
     // then treats as falsy and silently shows nothing. Always fall through
     // to a guaranteed-non-empty `HTTP <status>` as the last resort.
     const body = await res.json().catch(() => null)
-    const message = (body && typeof body.detail === "string" && body.detail)
+    // FastAPI sends `detail` as a string for our own rejections but as a list
+    // of {loc, msg} objects for schema validation failures; show both readably.
+    const detail = body && Array.isArray(body.detail)
+      ? body.detail
+          .map((d: { loc?: unknown[]; msg?: string }) =>
+            `${(d.loc ?? []).filter((p) => p !== "body").join(".")}: ${d.msg ?? "invalid"}`)
+          .join("; ")
+      : body && typeof body.detail === "string" ? body.detail : ""
+    const message = detail
       || res.statusText
       || `HTTP ${res.status} calling ${path} -- is VITE_API_BASE set correctly?`
     throw new Error(message)

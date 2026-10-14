@@ -1,78 +1,63 @@
 """Solver orchestration.
 
-=============================================================================
- STEP 7 STATE -- every pipeline stage from the original blueprint is now
- real: S1 validate, S2 metric closure, S3 zoning, S4 selection, S5
- sequencing, S6 simulation, S7 repair. STUB flips to False here for the
- first time -- it always meant "the current solve still has a placeholder
- stage, don't trust these numbers," and that's no longer true for a fresh
- instance. It is NOT a claim that the pipeline is optimal or complete as a
- piece of software: the surrogate-time approximation (knapsack.py), 2-opt's
- local-search limits (routing.py), and repair's greedy drop rule are all
- still heuristic by design, and Step 8's bench harness (measuring solution
- quality and runtime across instance sizes) hasn't been built yet.
+Runs the whole delivery-planning pipeline for one instance and returns the
+plan, its metrics and (optionally) a trace of every algorithm step.
 
- S1-S4:       S1 build + validate + a TRACED Bellman-Ford negative-cost-cycle
-              guard (on `cost`, from node 0 -- validate() already guarantees
-              connectivity, so one source sees every edge). INFORMATIONAL,
-              not a rejection: a typical instance has m-n+1 independent
-              cycles, so even a modest subsidy fraction usually makes some
-              cycle net negative (~65% of seeds at defaults, measured), and
-              routing never optimises on `cost` -- every path is chosen by
-              `tau`, cost is only summed along an already-fixed route. So
-              this is a real, worth-surfacing modelling fact, not a routing
-              failure; see metrics.negative_cost_cycle.
-              S2 metric closure -- `cfg.apsp` picks how: "dijkstra" (Step 3,
-              targeted per-source), "floyd" (Floyd-Warshall, full n x n),
-              or "johnson" (Bellman-Ford potentials + Dijkstra x n). All three
-              feed the identical `dist_from` / `path_for` interface the
-              simulation walk below uses, so switching modes never touches
-              the walk itself.
-              Route cost (not just time) is now tracked per vehicle, using
-              the graph's directional cost -- net_profit = total_profit -
-              total_cost is reported alongside the (harmless) cycle flag.
-              S3 zoning -- `cfg.zoning` picks "prim", "kruskal" (both: MST
-              over the stop-closure graph, cut into len(vehicles) zones by
-              removing the k-1 heaviest edges -- exactly single-linkage
-              clustering), or "none" (the original round-robin, kept as an
-              explicit baseline to contrast against). Orders are zoned by
-              PICKUP node. Each zone's kept forest weight is reported as
-              VehiclePlan.mst_lower_bound -- a real TSP lower bound (see
-              mst.py) for the tour that zone's vehicle is about to attempt.
-              S4 selection -- `cfg.selector` picks the algorithm, run once
-              per vehicle over its zone: "dp_deadline" (DP-3, exact given
-              the EDD lemma -- see knapsack.py's module docstring for the
-              proof), "dp_01" (classic 0/1 knapsack, capacity only, DELIBERATELY
-              deadline-blind -- demonstrates why that fails), "greedy_density"
-              (G1, fractional-knapsack flavoured), or "greedy_edd" (G2,
-              activity-selection flavoured). metrics.dp_bound is the summed
-              Dantzig LP bound across vehicles (valid regardless of which
-              selector actually ran, since it relaxes MORE constraints, not
-              fewer); bound_gap_pct is how far the achieved profit sits
-              below that ceiling.
+Stages, in order:
 
- S5-S7:       S5 sequencing -- `cfg.sequencer` picks "held_karp" (exact PDP-
-              TSP with precedence, safe only up to routing.py's
-              HELD_KARP_MAX_STOPS), "insertion_2opt" (cheapest-insertion +
-              precedence-preserving 2-opt, for anything larger), or "auto"
-              (Held-Karp when safe, else the heuristic -- and "held_karp"
-              silently falls back too, since the size cap is a safety
-              guardrail against an exponential blow-up, not a preference an
-              explicit request can override). `selected` is still LISTED
-              sorted by deadline (a stable, urgency-ordered display), but
-              the route actually driven follows whatever order the
-              sequencer found shortest -- pickups and drops from different
-              orders can legitimately interleave.
-              S6 simulation is unchanged in spirit (the feasibility walk),
-              now driven by the sequencer's route instead of EDD order.
-              S7 repair: if simulating the sequenced route misses a
-              deadline, the worst-value violator (min profit / surrogate-
-              time among the LATE orders) is dropped and the remainder is
-              RE-sequenced and re-simulated. Bounded: each iteration strictly
-              shrinks a finite set, so it terminates in at most
-              len(selected) drops -- see pipeline.py's `for...else` for the
-              explicit, asserted proof-as-code of that bound.
-=============================================================================
+  S1 build + validate   Build the graph, check it is connected with
+                        non-negative travel times, and run a traced
+                        Bellman-Ford negative-cycle screen on `cost`.
+                        The screen is INFORMATIONAL, not a rejection: with a
+                        modest subsidy fraction some cycle is usually net
+                        negative (about 65% of seeds at defaults), but routing
+                        never optimises on `cost` -- every path is chosen by
+                        travel time `tau`, and cost is only summed along an
+                        already-fixed route. It is surfaced as
+                        metrics.negative_cost_cycle.
+  S2 metric closure     `cfg.apsp` picks how stop-to-stop distances are built:
+                        "dijkstra" (targeted, per stop), "floyd"
+                        (Floyd-Warshall) or "johnson" (Bellman-Ford potentials
+                        + Dijkstra from every node). All three feed the same
+                        `dist_from` / `path_for` interface, so the later
+                        stages never care which was used.
+  S3 zoning             `cfg.zoning`: "prim" or "kruskal" (MST over the stop
+                        closure, cut into one zone per vehicle by removing the
+                        k-1 heaviest edges, i.e. single-linkage clustering),
+                        or "none" (round-robin baseline). Orders are zoned by
+                        pickup node. Each zone's MST weight is reported as
+                        VehiclePlan.mst_lower_bound, a TSP lower bound.
+  S4 selection          `cfg.selector`, run once per vehicle over its zone:
+                        "dp_deadline" (knapsack over capacity and time, see
+                        knapsack.py for the EDD argument), "dp_01" (capacity
+                        only, deliberately deadline-blind), "greedy_density"
+                        or "greedy_edd". metrics.dp_bound is the summed LP
+                        (Dantzig) upper bound; bound_gap_pct is how far the
+                        achieved profit sits below it.
+  S5 sequencing         `cfg.sequencer`: "held_karp" (exact pickup-and-
+                        delivery TSP, up to routing.py's HELD_KARP_MAX_STOPS),
+                        "insertion_2opt" (cheapest insertion + precedence-
+                        preserving 2-opt) or "auto" (Held-Karp when safe).
+                        "held_karp" also falls back to the heuristic past the
+                        size cap: it is a guard against an exponential
+                        blow-up, not a preference a request can override.
+  S6 simulation         Drives each vehicle along its sequenced route with
+                        release times, service times and deadlines, recording
+                        arrival times and which orders are late.
+  S7 repair             If a route misses a deadline, drop the worst-value
+                        late order (lowest profit per surrogate minute),
+                        re-sequence and re-simulate. Each pass strictly
+                        shrinks a finite set, so it ends after at most
+                        len(selected) drops; the `for...else` in the repair
+                        loop asserts that bound.
+
+The benchmark experiments (S8) live outside this module, in bench/sweeps.py,
+and call solve() or the S2 functions directly.
+
+Every stage is a heuristic or exact algorithm on a modelled approximation (the
+discretised surrogate time axis in knapsack.py, 2-opt's local optimum, the
+greedy repair rule), so STUB = False means "no placeholder stages remain", not
+"the plan is provably optimal".
 """
 from __future__ import annotations
 
@@ -94,7 +79,7 @@ from app.models import (
     ApspMatrix, Instance, Metrics, Order, SolveConfig, SolveResult, StopVisit, Vehicle, VehiclePlan,
 )
 
-STUB = False  # every stage is real as of Step 7 -- see the module docstring
+STUB = False  # no placeholder stages remain -- see the module docstring
 
 PathFn = Callable[[int, int], list[int]]
 
@@ -114,7 +99,7 @@ def _simulate_route(
     veh: Vehicle, order_ids: list[int], orders: dict[int, Order],
     dist_from: dict[int, list[float]], path_for: PathFn, sequencer_mode: str,
 ) -> SimResult:
-    """Step 7's S5 (sequence) + S6 (feasibility walk) for ONE candidate order
+    """S5 (sequence) + S6 (feasibility walk) for ONE candidate order
     set. Pure computation, no tracer -- this lets the repair loop try several
     candidates silently and trace only the one actually kept, via
     `_emit_sim_trace` below, instead of re-running the walk twice or
@@ -268,7 +253,7 @@ def solve(
     plans: list[VehiclePlan] = []
     served: set[int] = set()
 
-    # -- S3: MST-based zoning (Step 5), or the Step 1 round-robin fallback
+    # -- S3: MST-based zoning , or the round-robin baseline
     #    ("none") kept as a baseline to contrast against.
     #
     #    Phase A -- ZONING clusters {depot} + PICKUPS ONLY, not drops. This

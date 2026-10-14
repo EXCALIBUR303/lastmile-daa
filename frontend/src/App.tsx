@@ -88,9 +88,15 @@ export default function App() {
           {layout === "desktop" && leftOpen && (
             <aside
               aria-label="Controls"
-              className="scroll-thin w-[276px] shrink-0 2xl:w-[312px] overflow-y-auto border-r border-line bg-panel"
+              className="flex w-[276px] shrink-0 flex-col border-r border-line bg-panel 2xl:w-[312px]"
             >
-              {controls}
+              <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">{controls}</div>
+              {/* Playback stays pinned: it is used constantly and must not be
+                  scrolled out of reach by the algorithm sections above it. */}
+              <div className="shrink-0 border-t border-line bg-panel px-4 pb-3 pt-2.5">
+                <p className="mb-2 text-caption font-semibold text-ink">Playback</p>
+                <SimulationControls />
+              </div>
             </aside>
           )}
 
